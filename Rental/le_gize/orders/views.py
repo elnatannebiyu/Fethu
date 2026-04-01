@@ -14,13 +14,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from core.mixins import reception_required, loading_personnel_required, admin_required
+from core.utils import apply_search_filters
 from products.models import Product, Extra
 from personnel.models import LoadingPersonnel
-from personnel.models import LoadingPersonnel
-from orders.models import PersonnelAllocation  # Import from orders.models
-
-# Configure logger
-logger = logging.getLogger(__name__)
+from orders.models import PersonnelAllocation, Order, OrderItem, OrderExtra, Customer
 
 # ============================================================================
 # CONSTANTS
@@ -37,66 +34,13 @@ ORDER_STATUS_CHOICES = [
 # ============================================================================
 
 def get_role_based_orders(user):
-    """
-    Get orders based on user role
-    """
     if user.role == 'loading':
-        try:
-            personnel = user.loading_profile
-            return Order.objects.filter(
-                personnel_allocations__personnel=personnel
-            ).distinct()
-        except LoadingPersonnel.DoesNotExist:
-            return Order.objects.none()
-    else:
+        return Order.objects.filter(personnel_allocations__personnel__user=user)
+    elif user.role == 'reception':
+        return Order.objects.filter(created_by=user)
+    elif user.role == 'admin' or user.is_superuser:
         return Order.objects.all()
-
-
-def calculate_order_totals(items, days):
-    """
-    Calculate order totals from items and days
-    """
-    total = Decimal('0.00')
-    details = []
-    
-    for item in items:
-        try:
-            product = Product.objects.get(id=item['product_id'])
-            quantity = int(item['quantity'])
-            product_total = product.price_per_day * quantity * days
-            
-            extras_list = []
-            extras_total = Decimal('0.00')
-            
-            for extra_id in item.get('extras', []):
-                extra = Extra.objects.get(id=extra_id)
-                extra_total = extra.price_per_day * quantity * days
-                extras_total += extra_total
-                extras_list.append({
-                    'id': extra.id,
-                    'name': extra.name,
-                    'price': float(extra.price_per_day),
-                    'total': float(extra_total)
-                })
-            
-            item_total = product_total + extras_total
-            total += item_total
-            
-            details.append({
-                'product_id': product.id,
-                'product_name': product.name,
-                'quantity': quantity,
-                'price_per_day': float(product.price_per_day),
-                'extras': extras_list,
-                'subtotal': float(item_total)
-            })
-            
-        except (Product.DoesNotExist, Extra.DoesNotExist) as e:
-            logger.error(f"Error calculating totals: {e}")
-            continue
-    
-    return float(total), details
-
+    return Order.objects.none()
 
 def validate_personnel_allocations(personnel_data):
     """
@@ -107,6 +51,27 @@ def validate_personnel_allocations(personnel_data):
     
     total = sum(float(p.get('percentage', 0)) for p in personnel_data)
     return abs(total - 100.0) < 0.01, total
+
+def get_allocation_for_request(request, allocation_id):
+    """Fetch allocation and ensure the current user can act on it."""
+    allocation = get_object_or_404(
+        PersonnelAllocation.objects.select_related('personnel__user', 'order'),
+        id=allocation_id
+    )
+
+    if allocation.personnel.user != request.user and not request.user.is_superuser:
+        return None, "You don't have permission to confirm this assignment."
+
+    return allocation, None
+
+def validate_allocation_request(request, allocation_id):
+    """Shared helper used by template and API confirm views."""
+    allocation, error = get_allocation_for_request(request, allocation_id)
+    if error:
+        return None, error
+    if allocation.order.status != 'active':
+        return None, "This order is no longer active."
+    return allocation, None
 
 # ============================================================================
 # ORDER PAGE VIEWS
@@ -152,13 +117,10 @@ def order_list(request):
     if status:
         orders = orders.filter(status=status)
     
-    search = request.GET.get('search')
-    if search:
-        orders = orders.filter(
-            Q(order_number__icontains=search) |
-            Q(customer__full_name__icontains=search) |
-            Q(customer__phone__icontains=search)
-        )
+    search = request.GET.get('search', '')
+    orders = apply_search_filters(orders, search, [
+        'order_number', 'customer__full_name', 'customer__phone'
+    ])
     
     date_from = request.GET.get('date_from')
     if date_from:
@@ -294,30 +256,13 @@ def assigned_orders(request):
 @login_required
 @loading_personnel_required
 def confirm_loading(request, allocation_id):
-    """
-    Confirm loading assignment
-    """
-    allocation = get_object_or_404(
-        PersonnelAllocation.objects.select_related('order', 'personnel__user'),
-        id=allocation_id
-    )
-    
-    if allocation.personnel.user != request.user:
-        messages.error(request, "You don't have permission to confirm this assignment.")
+    """Confirm loading assignment (HTML flow)."""
+    allocation, error = validate_allocation_request(request, allocation_id)
+    if error:
+        messages.error(request, error)
         return redirect('orders:assigned_orders')
-    
-    if allocation.order.status != 'active':
-        messages.error(request, "This order is no longer active.")
-        return redirect('orders:assigned_orders')
-    
-    # Here you could add a confirmed field to the model
-    # For now, just show success message
-    messages.success(
-        request, 
-        f"Loading confirmed for Order {allocation.order.order_number}! "
-        f"Your estimated salary: ${allocation.order.estimated_total * allocation.percentage / 100:.2f}"
-    )
-    
+
+    messages.success(request, f"Loading confirmed for Order {allocation.order.order_number}!")
     return redirect('orders:assigned_orders')
 
 # ============================================================================
@@ -587,12 +532,9 @@ def search_active_orders_api(request):
         status='active'
     ).select_related('customer').order_by('-created_at')
     
-    if search_term:
-        orders = orders.filter(
-            Q(order_number__icontains=search_term) |
-            Q(customer__full_name__icontains=search_term) |
-            Q(customer__phone__icontains=search_term)
-        )
+    orders = apply_search_filters(orders, search_term, [
+        'order_number', 'customer__full_name', 'customer__phone'
+    ])
     
     orders = orders[:10]
     
@@ -826,49 +768,15 @@ def dashboard_stats_api(request):
         }
     
     return JsonResponse(stats)
+
 @login_required
 @loading_personnel_required
 @require_http_methods(["POST"])
 def confirm_loading_api(request, allocation_id):
-    """
-    API endpoint for loading personnel to confirm loading
-    """
-    try:
-        allocation = get_object_or_404(
-            PersonnelAllocation.objects.select_related('order', 'personnel__user'),
-            id=allocation_id
-        )
-        
-        if allocation.personnel.user != request.user:
-            return JsonResponse({
-                'success': False,
-                'error': 'Unauthorized'
-            }, status=403)
-        
-        if allocation.order.status != 'active':
-            return JsonResponse({
-                'success': False,
-                'error': 'This order is no longer active'
-            }, status=400)
-        
-        # Here you could add logic to mark as confirmed
-        # For now, just return success
-        
-        return JsonResponse({
-            'success': True,
-            'message': 'Loading confirmed successfully!',
-            'order_number': allocation.order.order_number,
-            'estimated_salary': float(allocation.order.estimated_total * allocation.percentage / 100)
-        })
-        
-    except PersonnelAllocation.DoesNotExist:
-        return JsonResponse({
-            'success': False,
-            'error': 'Allocation not found'
-        }, status=404)
-    except Exception as e:
-        logger.error(f"Error confirming loading: {e}")
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
+    """API endpoint for loading personnel to confirm loading."""
+    allocation, error = validate_allocation_request(request, allocation_id)
+    if error:
+        status = 403 if "permission" in error.lower() else 400
+        return JsonResponse({'success': False, 'message': error}, status=status)
+
+    return JsonResponse({'success': True, 'message': 'Loading confirmed successfully.'})

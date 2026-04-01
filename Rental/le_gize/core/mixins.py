@@ -70,71 +70,22 @@ class AnyStaffRequiredMixin(UserPassesTestMixin):
 
 def admin_required(view_func):
     """Decorator for function-based views that require admin access"""
-    @wraps(view_func)
-    def _wrapped_view(request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            messages.error(request, "Please log in to access this page.")
-            return redirect('accounts:login')
-        
-        if request.user.role == 'admin' or request.user.is_superuser:
-            return view_func(request, *args, **kwargs)
-        
-        messages.error(request, "You don't have permission to access this page.")
-        return redirect('core:dashboard')
-    return _wrapped_view
+    return role_required(['admin'])(view_func)
 
 
 def loading_personnel_required(view_func):
     """Decorator for function-based views that require loading personnel access"""
-    @wraps(view_func)
-    def _wrapped_view(request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            messages.error(request, "Please log in to access this page.")
-            return redirect('accounts:login')
-        
-        if (request.user.role == 'loading' or 
-            request.user.role == 'admin' or 
-            request.user.is_superuser):
-            return view_func(request, *args, **kwargs)
-        
-        messages.error(request, "You don't have permission to access this page.")
-        return redirect('core:dashboard')
-    return _wrapped_view
+    return role_required(['loading', 'admin'])(view_func)
 
 
 def reception_required(view_func):
     """Decorator for function-based views that require reception access"""
-    @wraps(view_func)
-    def _wrapped_view(request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            messages.error(request, "Please log in to access this page.")
-            return redirect('accounts:login')
-        
-        if (request.user.role == 'reception' or 
-            request.user.role == 'admin' or 
-            request.user.is_superuser):
-            return view_func(request, *args, **kwargs)
-        
-        messages.error(request, "You don't have permission to access this page.")
-        return redirect('core:dashboard')
-    return _wrapped_view
+    return role_required(['reception', 'admin'])(view_func)
 
 
 def any_staff_required(view_func):
     """Decorator for function-based views that any staff can access"""
-    @wraps(view_func)
-    def _wrapped_view(request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            messages.error(request, "Please log in to access this page.")
-            return redirect('accounts:login')
-        
-        if (request.user.role in ['admin', 'loading', 'reception'] or 
-            request.user.is_superuser):
-            return view_func(request, *args, **kwargs)
-        
-        messages.error(request, "You don't have permission to access this page.")
-        return redirect('core:dashboard')
-    return _wrapped_view
+    return role_required(['admin', 'loading', 'reception'])(view_func)
 
 
 def role_required(allowed_roles):

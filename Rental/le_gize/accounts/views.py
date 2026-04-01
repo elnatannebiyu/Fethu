@@ -8,6 +8,8 @@ from django.db.models import Q
 from django.http import JsonResponse
 
 from core.mixins import admin_required, any_staff_required
+from core.utils import apply_search_filters, flash_success, flash_error, render_form
+
 from .models import User
 from .forms import UserCreationForm, UserChangeForm, ProfileUpdateForm
 
@@ -106,14 +108,9 @@ def user_list_view(request):
     users = User.objects.all().order_by('-date_joined')
     
     search_query = request.GET.get('search', '')
-    if search_query:
-        users = users.filter(
-            Q(username__icontains=search_query) |
-            Q(email__icontains=search_query) |
-            Q(first_name__icontains=search_query) |
-            Q(last_name__icontains=search_query) |
-            Q(phone__icontains=search_query)
-        )
+    users = apply_search_filters(users, search_query, [
+        'username', 'email', 'first_name', 'last_name', 'phone'
+    ])
     
     role_filter = request.GET.get('role', '')
     if role_filter:
@@ -142,15 +139,19 @@ def user_create_view(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            messages.success(request, f"User {user.username} created successfully!")
+            flash_success(request, f"User {user.username}", "created")
             return redirect('accounts:user_list')
+        flash_error(request, "Please correct the errors below.")
     else:
         form = UserCreationForm()
     
-    return render(request, 'accounts/user_form.html', {
-        'form': form,
-        'title': 'Create New User'
-    })
+    return render_form(
+        request,
+        'accounts/user_form.html',
+        form,
+        'Create New User',
+        'Create User'
+    )
 
 @login_required
 @admin_required
@@ -162,16 +163,20 @@ def user_edit_view(request, user_id):
         form = UserChangeForm(request.POST, instance=user)
         if form.is_valid():
             form.save()
-            messages.success(request, f"User {user.username} updated successfully!")
+            flash_success(request, f"User {user.username}", "updated")
             return redirect('accounts:user_list')
+        flash_error(request, "Please correct the errors below.")
     else:
         form = UserChangeForm(instance=user)
     
-    return render(request, 'accounts/user_form.html', {
-        'form': form,
-        'title': f'Edit User: {user.username}',
-        'user': user
-    })
+    return render_form(
+        request,
+        'accounts/user_form.html',
+        form,
+        f'Edit User: {user.username}',
+        'Update User',
+        {'user': user}
+    )
 
 @login_required
 @admin_required
@@ -186,7 +191,7 @@ def user_delete_view(request, user_id):
     if request.method == 'POST':
         username = user.username
         user.delete()
-        messages.success(request, f"User {username} deleted successfully!")
+        flash_success(request, f"User {username}", "deleted")
         return redirect('accounts:user_list')
     
     return render(request, 'accounts/user_confirm_delete.html', {'user': user})

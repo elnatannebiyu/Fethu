@@ -5,6 +5,8 @@ from django.db.models import Q, Count
 from django.core.paginator import Paginator
 
 from core.mixins import admin_required
+from core.utils import apply_search_filters, flash_success, flash_error, render_form
+
 from .models import Product, Category, Extra
 from .forms import ProductForm, CategoryForm, ExtraForm
 
@@ -19,12 +21,9 @@ def product_list(request):
     products = Product.objects.all().select_related('category').prefetch_related('extras')
     
     search_query = request.GET.get('search', '')
-    if search_query:
-        products = products.filter(
-            Q(name__icontains=search_query) |
-            Q(description__icontains=search_query) |
-            Q(category__name__icontains=search_query)
-        )
+    products = apply_search_filters(products, search_query, [
+        'name', 'description', 'category__name'
+    ])
     
     category_id = request.GET.get('category', '')
     if category_id:
@@ -77,18 +76,19 @@ def product_create(request):
         form = ProductForm(request.POST, request.FILES)
         if form.is_valid():
             product = form.save()
-            messages.success(request, f'Product "{product.name}" created successfully!')
+            flash_success(request, f'Product "{product.name}"', 'created')
             return redirect('products:list')
-        else:
-            messages.error(request, 'Please correct the errors below.')
+        flash_error(request, 'Please correct the errors below.')
     else:
         form = ProductForm()
     
-    return render(request, 'products/product_form.html', {
-        'form': form,
-        'title': 'Create New Product',
-        'submit_text': 'Create Product'
-    })
+    return render_form(
+        request,
+        'products/product_form.html',
+        form,
+        'Create New Product',
+        'Create Product'
+    )
 
 @login_required
 @admin_required
@@ -100,19 +100,20 @@ def product_edit(request, pk):
         form = ProductForm(request.POST, request.FILES, instance=product)
         if form.is_valid():
             product = form.save()
-            messages.success(request, f'Product "{product.name}" updated successfully!')
+            flash_success(request, f'Product "{product.name}"', 'updated')
             return redirect('products:list')
-        else:
-            messages.error(request, 'Please correct the errors below.')
+        flash_error(request, 'Please correct the errors below.')
     else:
         form = ProductForm(instance=product)
     
-    return render(request, 'products/product_form.html', {
-        'form': form,
-        'title': f'Edit Product: {product.name}',
-        'product': product,
-        'submit_text': 'Update Product'
-    })
+    return render_form(
+        request,
+        'products/product_form.html',
+        form,
+        f'Edit Product: {product.name}',
+        'Update Product',
+        {'product': product}
+    )
 
 @login_required
 @admin_required
@@ -123,7 +124,7 @@ def product_delete(request, pk):
     if request.method == 'POST':
         name = product.name
         product.delete()
-        messages.success(request, f'Product "{name}" deleted successfully!')
+        flash_success(request, f'Product "{name}"', 'deleted')
         return redirect('products:list')
     
     return render(request, 'products/product_confirm_delete.html', {'product': product})
@@ -137,7 +138,7 @@ def product_toggle_active(request, pk):
     product.save()
     
     status = "activated" if product.is_active else "deactivated"
-    messages.success(request, f'Product "{product.name}" {status}!')
+    flash_success(request, f'Product "{product.name}"', status)
     return redirect('products:list')
 
 # ============================================================================
@@ -162,16 +163,19 @@ def category_create(request):
         form = CategoryForm(request.POST)
         if form.is_valid():
             category = form.save()
-            messages.success(request, f'Category "{category.name}" created successfully!')
+            flash_success(request, f'Category "{category.name}"', 'created')
             return redirect('products:category_list')
+        flash_error(request, 'Please correct the errors below.')
     else:
         form = CategoryForm()
     
-    return render(request, 'products/category_form.html', {
-        'form': form,
-        'title': 'Create New Category',
-        'submit_text': 'Create Category'
-    })
+    return render_form(
+        request,
+        'products/category_form.html',
+        form,
+        'Create New Category',
+        'Create Category'
+    )
 
 @login_required
 @admin_required
@@ -183,17 +187,20 @@ def category_edit(request, pk):
         form = CategoryForm(request.POST, instance=category)
         if form.is_valid():
             category = form.save()
-            messages.success(request, f'Category "{category.name}" updated successfully!')
+            flash_success(request, f'Category "{category.name}"', 'updated')
             return redirect('products:category_list')
+        flash_error(request, 'Please correct the errors below.')
     else:
         form = CategoryForm(instance=category)
     
-    return render(request, 'products/category_form.html', {
-        'form': form,
-        'title': f'Edit Category: {category.name}',
-        'category': category,
-        'submit_text': 'Update Category'
-    })
+    return render_form(
+        request,
+        'products/category_form.html',
+        form,
+        f'Edit Category: {category.name}',
+        'Update Category',
+        {'category': category}
+    )
 
 @login_required
 @admin_required
@@ -202,13 +209,13 @@ def category_delete(request, pk):
     category = get_object_or_404(Category, pk=pk)
     
     if category.products.exists():
-        messages.error(request, f'Cannot delete category "{category.name}" because it has associated products.')
+        flash_error(request, f'Cannot delete category "{category.name}" because it has associated products.')
         return redirect('products:category_list')
     
     if request.method == 'POST':
         name = category.name
         category.delete()
-        messages.success(request, f'Category "{name}" deleted successfully!')
+        flash_success(request, f'Category "{name}"', 'deleted')
         return redirect('products:category_list')
     
     return render(request, 'products/category_confirm_delete.html', {'category': category})
@@ -235,16 +242,19 @@ def extra_create(request):
         form = ExtraForm(request.POST)
         if form.is_valid():
             extra = form.save()
-            messages.success(request, f'Extra "{extra.name}" created successfully!')
+            flash_success(request, f'Extra "{extra.name}"', 'created')
             return redirect('products:extra_list')
+        flash_error(request, 'Please correct the errors below.')
     else:
         form = ExtraForm()
     
-    return render(request, 'products/extra_form.html', {
-        'form': form,
-        'title': 'Create New Extra',
-        'submit_text': 'Create Extra'
-    })
+    return render_form(
+        request,
+        'products/extra_form.html',
+        form,
+        'Create New Extra',
+        'Create Extra'
+    )
 
 @login_required
 @admin_required
@@ -256,17 +266,20 @@ def extra_edit(request, pk):
         form = ExtraForm(request.POST, instance=extra)
         if form.is_valid():
             extra = form.save()
-            messages.success(request, f'Extra "{extra.name}" updated successfully!')
+            flash_success(request, f'Extra "{extra.name}"', 'updated')
             return redirect('products:extra_list')
+        flash_error(request, 'Please correct the errors below.')
     else:
         form = ExtraForm(instance=extra)
     
-    return render(request, 'products/extra_form.html', {
-        'form': form,
-        'title': f'Edit Extra: {extra.name}',
-        'extra': extra,
-        'submit_text': 'Update Extra'
-    })
+    return render_form(
+        request,
+        'products/extra_form.html',
+        form,
+        f'Edit Extra: {extra.name}',
+        'Update Extra',
+        {'extra': extra}
+    )
 
 @login_required
 @admin_required
@@ -275,13 +288,13 @@ def extra_delete(request, pk):
     extra = get_object_or_404(Extra, pk=pk)
     
     if extra.products.exists():
-        messages.error(request, f'Cannot delete extra "{extra.name}" because it is used by products.')
+        flash_error(request, f'Cannot delete extra "{extra.name}" because it is used by products.')
         return redirect('products:extra_list')
     
     if request.method == 'POST':
         name = extra.name
         extra.delete()
-        messages.success(request, f'Extra "{name}" deleted successfully!')
+        flash_success(request, f'Extra "{name}"', 'deleted')
         return redirect('products:extra_list')
     
     return render(request, 'products/extra_confirm_delete.html', {'extra': extra})

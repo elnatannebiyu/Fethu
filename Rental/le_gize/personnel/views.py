@@ -4,6 +4,8 @@ from django.contrib import messages
 from django.db.models import Q
 
 from core.mixins import admin_required, loading_personnel_required
+from core.utils import apply_search_filters, flash_success, flash_error, render_form
+
 from .models import LoadingPersonnel
 from .forms import LoadingPersonnelForm
 
@@ -18,15 +20,10 @@ def personnel_list(request):
     personnel = LoadingPersonnel.objects.select_related('user').all().order_by('employee_id')
     
     search_query = request.GET.get('search', '')
-    if search_query:
-        personnel = personnel.filter(
-            Q(employee_id__icontains=search_query) |
-            Q(user__username__icontains=search_query) |
-            Q(user__first_name__icontains=search_query) |
-            Q(user__last_name__icontains=search_query) |
-            Q(user__email__icontains=search_query)
-        )
-    
+    personnel = apply_search_filters(personnel, search_query, [
+        'employee_id', 'user__username', 'user__first_name', 'user__last_name', 'user__email'
+    ])
+
     status_filter = request.GET.get('status', '')
     if status_filter == 'active':
         personnel = personnel.filter(is_active=True)
@@ -48,18 +45,19 @@ def personnel_create(request):
         form = LoadingPersonnelForm(request.POST)
         if form.is_valid():
             personnel = form.save()
-            messages.success(request, f'Loading personnel "{personnel.name}" created successfully!')
+            flash_success(request, f'Loading personnel "{personnel.name}"', 'created')
             return redirect('personnel:list')
-        else:
-            messages.error(request, 'Please correct the errors below.')
+        flash_error(request, 'Please correct the errors below.')
     else:
         form = LoadingPersonnelForm()
     
-    return render(request, 'personnel/personnel_form.html', {
-        'form': form,
-        'title': 'Create Loading Personnel',
-        'submit_text': 'Create Personnel'
-    })
+    return render_form(
+        request,
+        'personnel/personnel_form.html',
+        form,
+        'Create Loading Personnel',
+        'Create Personnel'
+    )
 
 @login_required
 @admin_required
@@ -71,19 +69,20 @@ def personnel_edit(request, pk):
         form = LoadingPersonnelForm(request.POST, instance=personnel)
         if form.is_valid():
             personnel = form.save()
-            messages.success(request, f'Loading personnel "{personnel.name}" updated successfully!')
+            flash_success(request, f'Loading personnel "{personnel.name}"', 'updated')
             return redirect('personnel:list')
-        else:
-            messages.error(request, 'Please correct the errors below.')
+        flash_error(request, 'Please correct the errors below.')
     else:
         form = LoadingPersonnelForm(instance=personnel)
     
-    return render(request, 'personnel/personnel_form.html', {
-        'form': form,
-        'title': f'Edit Loading Personnel: {personnel.name}',
-        'personnel': personnel,
-        'submit_text': 'Update Personnel'
-    })
+    return render_form(
+        request,
+        'personnel/personnel_form.html',
+        form,
+        f'Edit Loading Personnel: {personnel.name}',
+        'Update Personnel',
+        {'personnel': personnel}
+    )
 
 @login_required
 @admin_required
@@ -98,7 +97,7 @@ def personnel_delete(request, pk):
     if request.method == 'POST':
         name = personnel.name
         personnel.delete()
-        messages.success(request, f'Loading personnel "{name}" deleted successfully!')
+        flash_success(request, f'Loading personnel "{name}"', 'deleted')
         return redirect('personnel:list')
     
     return render(request, 'personnel/personnel_confirm_delete.html', {'personnel': personnel})
@@ -112,7 +111,7 @@ def personnel_toggle_active(request, pk):
     personnel.save()
     
     status = "activated" if personnel.is_active else "deactivated"
-    messages.success(request, f'Loading personnel "{personnel.name}" {status}!')
+    flash_success(request, f'Loading personnel "{personnel.name}"', status)
     return redirect('personnel:list')
 
 # ============================================================================
