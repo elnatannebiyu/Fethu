@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %} - Orders Report{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold">Orders Report</h1>
+        <div class="flex space-x-4">
+            <a href="{% url 'reports:orders_pdf' %}?{{ request.GET.urlencode }}" 
+               class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
+                <i class="fas fa-file-pdf mr-2"></i>Export PDF
+            </a>
+            <a href="{% url 'reports:orders_csv' %}?{{ request.GET.urlencode }}" 
+               class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+                <i class="fas fa-file-csv mr-2"></i>Export CSV
+            </a>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div>
+                <label class="block text-sm font-medium mb-2">Status</label>
+                <select name="status" class="input-field">
+                    <option value="">All</option>
+                    {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2">Date From</label>
+                <input type="date" name="date_from" class="input-field" value="{{ request.GET.date_from }}">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2">Date To</label>
+                <input type="date" name="date_to" class="input-field" value="{{ request.GET.date_to }}">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2">Customer</label>
+                <input type="text" name="customer" class="input-field" placeholder="Search..." value="{{ request.GET.customer }}">
+            </div>
+            <div class="flex items-end space-x-2">
+                <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                    <i class="fas fa-search mr-2"></i>Filter
+                </button>
+                <a href="{% url 'reports:orders_report' %}" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600">
+                    <i class="fas fa-redo mr-2"></i>Reset
+                </a>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Summary -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <p class="text-gray-500 dark:text-gray-400">Total Orders</p>
+                <p class="text-2xl font-bold">{{ orders.count }}</p>
+            </div>
+            <div>
+                <p class="text-gray-500 dark:text-gray-400">Total Amount</p>
+                <p class="text-2xl font-bold text-green-600">${{ total_amount|floatformat:2 }}</p>
+            </div>
+            <div>
+                <p class="text-gray-500 dark:text-gray-400">Average Order</p>
+                <p class="text-2xl font-bold text-blue-600">
+                    ${% if orders.count > 0 %}{{ total_amount|divisibleby:orders.count|floatformat:2 }}{% else %}0.00{% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Orders Table -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead>
+                    <tr class="border-b dark:border-gray-700">
+                        <th class="text-left py-3 px-4">Order #</th>
+                        <th class="text-left py-3 px-4">Customer</th>
+                        <th class="text-left py-3 px-4">Date</th>
+                        <th class="text-left py-3 px-4">Status</th>
+                        <th class="text-left py-3 px-4">Items</th>
+                        <th class="text-left py-3 px-4">Total</th>
+                        <th class="text-left py-3 px-4">Prepayment</th>
+                        <th class="text-left py-3 px-4">Remaining</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                        <td class="py-3 px-4 font-mono">{{ order.order_number }}</td>
+                        <td class="py-3 px-4">{{ order.customer.full_name }}</td>
+                        <td class="py-3 px-4">{{ order.created_at|date:"Y-m-d" }}</td>
+                        <td class="py-3 px-4">
+                            <span class="px-2 py-1 rounded-full text-xs 
+                                {% if order.status == 'completed' %}bg-green-100 text-green-800
+                                {% elif order.status == 'active' %}bg-blue-100 text-blue-800
+                                {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ order.status|title }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4">{{ order.items.count }}</td>
+                        <td class="py-3 px-4 font-semibold">${{ order.final_total|default:order.estimated_total|floatformat:2 }}</td>
+                        <td class="py-3 px-4">${{ order.prepayment_amount|floatformat:2 }}</td>
+                        <td class="py-3 px-4">${{ order.remaining_amount|default:0|floatformat:2 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="py-8 text-center text-gray-500">No orders found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate table rows
+        gsap.from('tbody tr', {
+            opacity: 0,
+            x: -20,
+            duration: 0.4,
+            stagger: 0.05,
+            ease: 'power2.out'
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %} - Personnel Report{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold">Personnel Salary Report</h1>
+        <div class="flex space-x-4">
+            <a href="{% url 'reports:personnel_pdf' %}" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
+                <i class="fas fa-file-pdf mr-2"></i>Export PDF
+            </a>
+            <a href="{% url 'reports:personnel_csv' %}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+                <i class="fas fa-file-csv mr-2"></i>Export CSV
+            </a>
+        </div>
+    </div>
+    
+    <!-- Summary -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <p class="text-gray-500 dark:text-gray-400">Active Personnel</p>
+                <p class="text-2xl font-bold">{{ personnel.count }}</p>
+            </div>
+            <div>
+                <p class="text-gray-500 dark:text-gray-400">Total Salaries Paid</p>
+                <p class="text-2xl font-bold text-green-600">${{ total_paid|floatformat:2 }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Personnel Table -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead>
+                    <tr class="border-b dark:border-gray-700">
+                        <th class="text-left py-3 px-4">Employee ID</th>
+                        <th class="text-left py-3 px-4">Name</th>
+                        <th class="text-left py-3 px-4">Email</th>
+                        <th class="text-left py-3 px-4">Phone</th>
+                        <th class="text-left py-3 px-4">Orders</th>
+                        <th class="text-left py-3 px-4">Total Earned</th>
+                        <th class="text-left py-3 px-4">Average per Order</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in personnel %}
+                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                        <td class="py-3 px-4 font-mono">{{ p.employee_id }}</td>
+                        <td class="py-3 px-4 font-medium">{{ p.user.get_full_name|default:p.user.username }}</td>
+                        <td class="py-3 px-4">{{ p.user.email|default:"-" }}</td>
+                        <td class="py-3 px-4">{{ p.user.phone|default:"-" }}</td>
+                        <td class="py-3 px-4">{{ p.orders_count|default:0 }}</td>
+                        <td class="py-3 px-4 font-semibold text-green-600">${{ p.total_earned|default:0|floatformat:2 }}</td>
+                        <td class="py-3 px-4">
+                            ${% if p.orders_count %}{{ p.total_earned|divisibleby:p.orders_count|floatformat:2 }}{% else %}0.00{% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="py-8 text-center text-gray-500">No personnel found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        gsap.from('tbody tr', {
+            opacity: 0,
+            x: -20,
+            duration: 0.4,
+            stagger: 0.05
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+
+{% block title %} - Reports Dashboard{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <h1 class="text-3xl font-bold mb-8">Reports Dashboard</h1>
+    
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 transform hover:scale-105 transition-all duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm">Total Orders</p>
+                    <p class="text-3xl font-bold text-green-600">{{ total_orders }}</p>
+                </div>
+                <div class="bg-green-100 dark:bg-green-900 p-3 rounded-full">
+                    <i class="fas fa-shopping-cart text-green-600 dark:text-green-400 text-2xl"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex justify-between text-sm">
+                <span class="text-blue-600">Active: {{ active_orders }}</span>
+                <span class="text-green-600">Completed: {{ completed_orders }}</span>
+            </div>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 transform hover:scale-105 transition-all duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm">Total Revenue</p>
+                    <p class="text-3xl font-bold text-blue-600">${{ total_revenue|floatformat:2 }}</p>
+                </div>
+                <div class="bg-blue-100 dark:bg-blue-900 p-3 rounded-full">
+                    <i class="fas fa-dollar-sign text-blue-600 dark:text-blue-400 text-2xl"></i>
+                </div>
+            </div>
+            <div class="mt-4 text-sm">
+                <span class="text-gray-600 dark:text-gray-400">This week: ${{ weekly_revenue|floatformat:2 }}</span>
+            </div>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 transform hover:scale-105 transition-all duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm">Customers</p>
+                    <p class="text-3xl font-bold text-purple-600">{{ total_customers }}</p>
+                </div>
+                <div class="bg-purple-100 dark:bg-purple-900 p-3 rounded-full">
+                    <i class="fas fa-users text-purple-600 dark:text-purple-400 text-2xl"></i>
+                </div>
+            </div>
+            <div class="mt-4 text-sm">
+                <span class="text-gray-600 dark:text-gray-400">Active rentals: {{ active_orders }}</span>
+            </div>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 transform hover:scale-105 transition-all duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm">Products</p>
+                    <p class="text-3xl font-bold text-orange-600">{{ total_products }}</p>
+                </div>
+                <div class="bg-orange-100 dark:bg-orange-900 p-3 rounded-full">
+                    <i class="fas fa-box text-orange-600 dark:text-orange-400 text-2xl"></i>
+                </div>
+            </div>
+            <div class="mt-4 text-sm">
+                <span class="text-yellow-600">{{ weekly_orders }} rented this week</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Report Categories -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Orders Reports -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition-all duration-300">
+            <div class="flex items-center mb-4">
+                <div class="bg-green-100 dark:bg-green-900 p-3 rounded-lg mr-4">
+                    <i class="fas fa-file-invoice text-green-600 dark:text-green-400 text-2xl"></i>
+                </div>
+                <h2 class="text-xl font-semibold">Order Reports</h2>
+            </div>
+            <p class="text-gray-600 dark:text-gray-400 mb-4">View and export order history with filters</p>
+            <div class="space-y-2">
+                <a href="{% url 'reports:orders_report' %}" class="block text-green-600 hover:text-green-700">
+                    <i class="fas fa-chart-line mr-2"></i>View Orders Report
+                </a>
+                <div class="flex space-x-4 mt-3">
+                    <a href="{% url 'reports:orders_pdf' %}" class="text-red-600 hover:text-red-700">
+                        <i class="fas fa-file-pdf mr-1"></i>PDF
+                    </a>
+                    <a href="{% url 'reports:orders_csv' %}" class="text-green-600 hover:text-green-700">
+                        <i class="fas fa-file-csv mr-1"></i>CSV
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Product Reports -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition-all duration-300">
+            <div class="flex items-center mb-4">
+                <div class="bg-blue-100 dark:bg-blue-900 p-3 rounded-lg mr-4">
+                    <i class="fas fa-boxes text-blue-600 dark:text-blue-400 text-2xl"></i>
+                </div>
+                <h2 class="text-xl font-semibold">Product Reports</h2>
+            </div>
+            <p class="text-gray-600 dark:text-gray-400 mb-4">Product usage, stock levels, and popularity</p>
+            <div class="space-y-2">
+                <a href="{% url 'reports:products_report' %}" class="block text-blue-600 hover:text-blue-700">
+                    <i class="fas fa-chart-bar mr-2"></i>View Products Report
+                </a>
+                <div class="flex space-x-4 mt-3">
+                    <a href="{% url 'reports:products_pdf' %}" class="text-red-600 hover:text-red-700">
+                        <i class="fas fa-file-pdf mr-1"></i>PDF
+                    </a>
+                    <a href="{% url 'reports:products_csv' %}" class="text-green-600 hover:text-green-700">
+                        <i class="fas fa-file-csv mr-1"></i>CSV
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Personnel Reports -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition-all duration-300">
+            <div class="flex items-center mb-4">
+                <div class="bg-purple-100 dark:bg-purple-900 p-3 rounded-lg mr-4">
+                    <i class="fas fa-users text-purple-600 dark:text-purple-400 text-2xl"></i>
+                </div>
+                <h2 class="text-xl font-semibold">Personnel Reports</h2>
+            </div>
+            <p class="text-gray-600 dark:text-gray-400 mb-4">Salary calculations and performance metrics</p>
+            <div class="space-y-2">
+                <a href="{% url 'reports:personnel_report' %}" class="block text-purple-600 hover:text-purple-700">
+                    <i class="fas fa-user-tie mr-2"></i>View Personnel Report
+                </a>
+                <div class="flex space-x-4 mt-3">
+                    <a href="{% url 'reports:personnel_pdf' %}" class="text-red-600 hover:text-red-700">
+                        <i class="fas fa-file-pdf mr-1"></i>PDF
+                    </a>
+                    <a href="{% url 'reports:personnel_csv' %}" class="text-green-600 hover:text-green-700">
+                        <i class="fas fa-file-csv mr-1"></i>CSV
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Financial Summary -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Financial Summary</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+                <p class="text-gray-500 dark:text-gray-400">Daily Revenue</p>
+                <p class="text-2xl font-bold text-green-600">${{ daily_revenue|floatformat:2 }}</p>
+            </div>
+            <div>
+                <p class="text-gray-500 dark:text-gray-400">Weekly Revenue</p>
+                <p class="text-2xl font-bold text-blue-600">${{ weekly_revenue|floatformat:2 }}</p>
+            </div>
+            <div>
+                <p class="text-gray-500 dark:text-gray-400">Monthly Revenue</p>
+                <p class="text-2xl font-bold text-purple-600">${{ monthly_revenue|floatformat:2 }}</p>
+            </div>
+        </div>
+        <div class="mt-4">
+            <a href="{% url 'reports:financial_report' %}" class="text-green-600 hover:text-green-700">
+                View Detailed Financial Report <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Recent Orders Table -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        <h2 class="text-xl font-semibold mb-4">Recent Orders</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead>
+                    <tr class="border-b dark:border-gray-700">
+                        <th class="text-left py-3 px-4">Order #</th>
+                        <th class="text-left py-3 px-4">Customer</th>
+                        <th class="text-left py-3 px-4">Date</th>
+                        <th class="text-left py-3 px-4">Status</th>
+                        <th class="text-left py-3 px-4">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in recent_orders %}
+                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                        <td class="py-3 px-4 font-mono">{{ order.order_number }}</td>
+                        <td class="py-3 px-4">{{ order.customer.full_name }}</td>
+                        <td class="py-3 px-4">{{ order.created_at|date:"Y-m-d" }}</td>
+                        <td class="py-3 px-4">
+                            <span class="px-2 py-1 rounded-full text-xs 
+                                {% if order.status == 'completed' %}bg-green-100 text-green-800
+                                {% elif order.status == 'active' %}bg-blue-100 text-blue-800
+                                {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ order.status|title }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4">${{ order.final_total|default:order.estimated_total|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate cards
+        gsap.from('.bg-white', {
+            opacity: 0,
+            y: 30,
+            duration: 0.6,
+            stagger: 0.1,
+            ease: 'power2.out'
+        });
+    });
+</script>
+{% endblock %}

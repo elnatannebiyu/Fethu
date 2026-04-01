@@ -1,0 +1,469 @@
+{% extends 'base.html' %}
+
+{% block title %} - Process Return{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">
+        Process Rental Return
+    </h1>
+    
+    <!-- Search Card -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Search Active Order</h2>
+        
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i class="fas fa-search text-gray-400"></i>
+            </div>
+            <input type="text" id="orderSearch" 
+                   class="input-field pl-10" 
+                   placeholder="Search by order number, customer name, or phone..."
+                   autocomplete="off">
+        </div>
+        
+        <!-- Search Results Dropdown -->
+        <div id="searchResults" class="hidden mt-2 bg-white dark:bg-gray-700 rounded-lg shadow-xl border border-gray-200 dark:border-gray-600 max-h-96 overflow-y-auto">
+            <!-- Results will appear here -->
+        </div>
+        
+        <div class="mt-4 text-sm text-gray-500 dark:text-gray-400">
+            <i class="fas fa-info-circle mr-1"></i>
+            {{ active_orders_count }} active orders ready for return
+        </div>
+    </div>
+    
+    <!-- Return Form (hidden initially) -->
+    <div id="returnFormContainer" class="hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-6">Return Details</h2>
+            
+            <!-- Order Summary Card -->
+            <div id="orderSummary" class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
+                <!-- Will be populated by JavaScript -->
+            </div>
+            
+            <!-- Return Date -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium mb-2">Actual Return Date</label>
+                <input type="date" id="actualReturnDate" class="input-field" value="{{ today|date:'Y-m-d' }}">
+            </div>
+            
+            <!-- Return Calculation -->
+            <div id="returnCalculation" class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
+                <h3 class="font-semibold mb-4">Return Summary</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span>Days Rented:</span>
+                        <span id="daysRented" class="font-semibold">0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Original Estimate:</span>
+                        <span id="originalTotal" class="font-semibold">$0.00</span>
+                    </div>
+                    <div class="flex justify-between text-green-600">
+                        <span>Prepayment Paid:</span>
+                        <span id="prepaymentPaid" class="font-semibold">$0.00</span>
+                    </div>
+                    <div class="border-t border-gray-300 dark:border-gray-600 pt-3">
+                        <div class="flex justify-between text-lg font-bold">
+                            <span>Final Total:</span>
+                            <span id="finalTotal" class="text-green-600">$0.00</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-between text-lg font-bold">
+                        <span>Remaining to Pay:</span>
+                        <span id="remainingAmount" class="text-blue-600">$0.00</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Items List -->
+            <div id="itemsList" class="mb-6">
+                <h3 class="font-semibold mb-4">Rented Items</h3>
+                <div class="space-y-3" id="itemsContainer">
+                    <!-- Items will be populated here -->
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="flex justify-end space-x-4">
+                <button type="button" id="cancelBtn" class="btn-secondary">
+                    Cancel
+                </button>
+                <button type="button" id="finalizeReturnBtn" class="btn-primary">
+                    <i class="fas fa-check-circle mr-2"></i>Finalize Return
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Templates -->
+<template id="searchResultTemplate">
+    <div class="search-result p-4 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer border-b border-gray-200 dark:border-gray-600 last:border-0">
+        <div class="font-semibold text-green-600" data-order-number></div>
+        <div class="text-sm" data-customer></div>
+        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            <span data-phone></span> • 
+            Expected: <span data-return-date></span>
+        </div>
+    </div>
+</template>
+
+<template id="itemTemplate">
+    <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+        <div class="flex justify-between items-start">
+            <div>
+                <div class="font-medium" data-name></div>
+                <div class="text-sm text-gray-600 dark:text-gray-400">
+                    Qty: <span data-quantity></span> × $<span data-price></span>/day
+                </div>
+            </div>
+            <div class="text-right">
+                <div class="font-semibold" data-subtotal></div>
+            </div>
+        </div>
+        <div class="mt-2 text-sm text-gray-600 dark:text-gray-400" data-extras></div>
+    </div>
+</template>
+
+{% block extra_js %}
+<script>
+    let selectedOrder = null;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate page
+        gsap.from('.bg-white', {
+            opacity: 0,
+            y: 30,
+            duration: 0.8,
+            stagger: 0.1,
+            ease: 'power2.out'
+        });
+        
+        // Search functionality
+        const searchInput = document.getElementById('orderSearch');
+        const searchResults = document.getElementById('searchResults');
+        let searchTimeout;
+        
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const query = this.value.trim();
+            
+            if (query.length < 2) {
+                searchResults.classList.add('hidden');
+                return;
+            }
+            
+            searchTimeout = setTimeout(() => {
+                fetch(`/orders/api/search-active-orders/?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        displaySearchResults(data.orders);
+                    })
+                    .catch(error => {
+                        console.error('Search error:', error);
+                    });
+            }, 300);
+        });
+        
+        // Hide results when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.classList.add('hidden');
+            }
+        });
+        
+        // Return date change
+        document.getElementById('actualReturnDate').addEventListener('change', calculateReturn);
+        
+        // Finalize button
+        document.getElementById('finalizeReturnBtn').addEventListener('click', finalizeReturn);
+        
+        // Cancel button
+        document.getElementById('cancelBtn').addEventListener('click', resetReturn);
+    });
+    
+    function displaySearchResults(orders) {
+        const resultsDiv = document.getElementById('searchResults');
+        resultsDiv.innerHTML = '';
+        
+        if (orders.length === 0) {
+            resultsDiv.innerHTML = '<div class="p-4 text-center text-gray-500">No active orders found</div>';
+        } else {
+            orders.forEach(order => {
+                const template = document.getElementById('searchResultTemplate');
+                const clone = template.content.cloneNode(true);
+                
+                clone.querySelector('[data-order-number]').textContent = order.order_number;
+                clone.querySelector('[data-customer]').textContent = order.customer_name;
+                clone.querySelector('[data-phone]').textContent = order.customer_phone;
+                clone.querySelector('[data-return-date]').textContent = order.expected_return_date;
+                
+                const resultDiv = clone.querySelector('.search-result');
+                resultDiv.addEventListener('click', () => selectOrder(order.id));
+                
+                resultsDiv.appendChild(clone);
+            });
+        }
+        
+        resultsDiv.classList.remove('hidden');
+        
+        // Animate results
+        gsap.from('.search-result', {
+            opacity: 0,
+            x: -20,
+            duration: 0.3,
+            stagger: 0.05
+        });
+    }
+    
+    function selectOrder(orderId) {
+        // Hide search results
+        document.getElementById('searchResults').classList.add('hidden');
+        document.getElementById('orderSearch').value = '';
+        
+        // Show loading
+        window.leGize.showLoading(true);
+        
+        // Fetch order details
+        fetch(`/orders/api/get-order-details/${orderId}/`)
+            .then(response => response.json())
+            .then(data => {
+                selectedOrder = data;
+                displayOrderSummary(data);
+                
+                // Show return form with animation
+                const returnForm = document.getElementById('returnFormContainer');
+                returnForm.classList.remove('hidden');
+                
+                gsap.from(returnForm, {
+                    opacity: 0,
+                    y: 30,
+                    duration: 0.5
+                });
+                
+                calculateReturn();
+                window.leGize.showLoading(false);
+            })
+            .catch(error => {
+                console.error('Error fetching order:', error);
+                window.leGize.showLoading(false);
+                alert('Error loading order details');
+            });
+    }
+    
+    function displayOrderSummary(order) {
+        const summaryDiv = document.getElementById('orderSummary');
+        
+        summaryDiv.innerHTML = `
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Order Number</p>
+                    <p class="font-semibold text-green-600">${order.order_number}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Customer</p>
+                    <p class="font-semibold">${order.customer.full_name}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Phone</p>
+                    <p>${order.customer.phone}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Tax ID</p>
+                    <p>${order.customer.tax_id || '-'}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Start Date</p>
+                    <p>${order.start_date}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Expected Return</p>
+                    <p>${order.expected_return_date}</p>
+                </div>
+            </div>
+        `;
+        
+        // Display items
+        const itemsContainer = document.getElementById('itemsContainer');
+        itemsContainer.innerHTML = '';
+        
+        order.items.forEach(item => {
+            const template = document.getElementById('itemTemplate');
+            const clone = template.content.cloneNode(true);
+            
+            clone.querySelector('[data-name]').textContent = item.product_name;
+            clone.querySelector('[data-quantity]').textContent = item.quantity;
+            clone.querySelector('[data-price]').textContent = item.price_per_day;
+            clone.querySelector('[data-subtotal]').textContent = `$${item.subtotal.toFixed(2)}`;
+            
+            // Add extras
+            if (item.extras && item.extras.length > 0) {
+                const extrasDiv = clone.querySelector('[data-extras]');
+                extrasDiv.innerHTML = '<span class="font-medium">Extras:</span> ';
+                extrasDiv.innerHTML += item.extras.map(e => 
+                    `${e.name} (x${e.quantity})`
+                ).join(', ');
+            }
+            
+            itemsContainer.appendChild(clone);
+        });
+        
+        // Store original values
+        document.getElementById('originalTotal').textContent = `$${order.estimated_total.toFixed(2)}`;
+        document.getElementById('prepaymentPaid').textContent = `$${order.prepayment_amount.toFixed(2)}`;
+    }
+    
+    function calculateReturn() {
+        if (!selectedOrder) return;
+        
+        const startDate = new Date(selectedOrder.start_date);
+        const actualReturn = new Date(document.getElementById('actualReturnDate').value);
+        const daysRented = Math.max(1, Math.ceil((actualReturn - startDate) / (1000 * 60 * 60 * 24)));
+        
+        document.getElementById('daysRented').textContent = daysRented;
+        
+        // Calculate final total based on actual days
+        let finalTotal = 0;
+        
+        selectedOrder.items.forEach(item => {
+            finalTotal += item.price_per_day * item.quantity * daysRented;
+            
+            item.extras.forEach(extra => {
+                finalTotal += extra.price_per_day * extra.quantity * daysRented;
+            });
+        });
+        
+        const remaining = finalTotal - selectedOrder.prepayment_amount;
+        
+        document.getElementById('finalTotal').textContent = `$${finalTotal.toFixed(2)}`;
+        document.getElementById('remainingAmount').textContent = `$${remaining.toFixed(2)}`;
+        
+        // Animate numbers
+        gsap.to('#finalTotal, #remainingAmount', {
+            scale: 1.1,
+            duration: 0.2,
+            yoyo: true,
+            repeat: 1
+        });
+    }
+    
+    function finalizeReturn() {
+        if (!selectedOrder) return;
+        
+        const btn = document.getElementById('finalizeReturnBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+        btn.disabled = true;
+        
+        fetch('/orders/api/finalize-return/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                order_id: selectedOrder.id,
+                actual_return_date: document.getElementById('actualReturnDate').value
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Success animation
+                showMessage('Return processed successfully!', 'success');
+                
+                // Confetti
+                if (window.leGize) {
+                    window.leGize.celebrate();
+                }
+                
+                // Reset form after delay
+                setTimeout(() => {
+                    resetReturn();
+                }, 3000);
+            } else {
+                showMessage('Error: ' + data.error, 'error');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('Error processing return', 'error');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+    }
+    
+    function resetReturn() {
+        const returnForm = document.getElementById('returnFormContainer');
+        
+        gsap.to(returnForm, {
+            opacity: 0,
+            y: 30,
+            duration: 0.3,
+            onComplete: () => {
+                returnForm.classList.add('hidden');
+                gsap.set(returnForm, { opacity: 1, y: 0 });
+                selectedOrder = null;
+                document.getElementById('orderSearch').value = '';
+                document.getElementById('orderSearch').focus();
+            }
+        });
+    }
+    
+    function showMessage(message, type) {
+        const messagesDiv = document.querySelector('.messages-container') || document.createElement('div');
+        
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `message-popup p-4 rounded-lg shadow-lg mb-4 
+            ${type === 'success' ? 'bg-green-50 dark:bg-green-900/30 border-l-4 border-green-500 text-green-800 dark:text-green-200' : 
+            'bg-red-50 dark:bg-red-900/30 border-l-4 border-red-500 text-red-800 dark:text-red-200'}`;
+        
+        alertDiv.innerHTML = `
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} text-${type === 'success' ? 'green' : 'red'}-500"></i>
+                </div>
+                <div class="ml-3">${message}</div>
+            </div>
+        `;
+        
+        document.querySelector('main').prepend(alertDiv);
+        
+        gsap.from(alertDiv, {
+            y: -50,
+            opacity: 0,
+            duration: 0.5,
+            ease: 'back.out'
+        });
+        
+        setTimeout(() => {
+            gsap.to(alertDiv, {
+                opacity: 0,
+                y: -20,
+                duration: 0.5,
+                onComplete: () => alertDiv.remove()
+            });
+        }, 5000);
+    }
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}

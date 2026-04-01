@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %} - My Assignments{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">
+            My Loading Assignments
+        </h1>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="card">
+            <p class="text-sm text-gray-500 dark:text-gray-400">Active Assignments</p>
+            <p class="text-2xl font-bold">{{ active_count }}</p>
+        </div>
+        <div class="card">
+            <p class="text-sm text-gray-500 dark:text-gray-400">Completed</p>
+            <p class="text-2xl font-bold">{{ completed_count }}</p>
+        </div>
+        <div class="card">
+            <p class="text-sm text-gray-500 dark:text-gray-400">Total Earned</p>
+            <p class="text-2xl font-bold text-green-600">${{ total_earned|floatformat:2 }}</p>
+        </div>
+        <div class="card">
+            <p class="text-sm text-gray-500 dark:text-gray-400">Average per Order</p>
+            <p class="text-2xl font-bold text-blue-600">
+                ${% if completed_count %}{{ total_earned|divisibleby:completed_count|floatformat:2 }}{% else %}0.00{% endif %}
+            </p>
+        </div>
+    </div>
+
+    {% if error %}
+    <div class="bg-red-50 dark:bg-red-900/30 border-l-4 border-red-500 p-4 mb-6">
+        <p class="text-red-700 dark:text-red-300">{{ error }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Active Assignments -->
+    <div class="card mb-8">
+        <h2 class="text-lg font-semibold mb-4">Active Assignments</h2>
+        
+        {% if active_assignments %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead>
+                    <tr class="border-b dark:border-gray-700">
+                        <th class="text-left py-3">Order #</th>
+                        <th class="text-left py-3">Customer</th>
+                        <th class="text-left py-3">Start Date</th>
+                        <th class="text-left py-3">Expected Return</th>
+                        <th class="text-left py-3">Your %</th>
+                        <th class="text-left py-3">Est. Earnings</th>
+                        <th class="text-left py-3">Status</th>
+                        <th class="text-left py-3">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for allocation in active_assignments %}
+                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <td class="py-3 font-mono">{{ allocation.order.order_number }}</td>
+                        <td class="py-3">{{ allocation.order.customer.full_name }}</td>
+                        <td class="py-3">{{ allocation.order.start_date|date:"Y-m-d" }}</td>
+                        <td class="py-3">{{ allocation.order.expected_return_date|date:"Y-m-d" }}</td>
+                        <td class="py-3">{{ allocation.percentage }}%</td>
+                        <td class="py-3 font-semibold text-green-600">
+                            ${{ allocation.order.estimated_total|floatformat:2 }}
+                        </td>
+                        <td class="py-3">
+                            <span class="badge-active">Active</span>
+                        </td>
+                        <td class="py-3">
+                            <a href="{% url 'orders:confirm_loading' allocation.id %}" 
+                               class="text-green-600 hover:text-green-700"
+                               onclick="return confirm('Confirm that you have loaded this order?')">
+                                <i class="fas fa-check-circle mr-1"></i>Confirm
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-center py-8 text-gray-500">No active assignments</p>
+        {% endif %}
+    </div>
+
+    <!-- Completed History -->
+    <div class="card">
+        <h2 class="text-lg font-semibold mb-4">Recent Completed</h2>
+        
+        {% if completed_assignments %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead>
+                    <tr class="border-b dark:border-gray-700">
+                        <th class="text-left py-3">Order #</th>
+                        <th class="text-left py-3">Customer</th>
+                        <th class="text-left py-3">Completed</th>
+                        <th class="text-left py-3">Your %</th>
+                        <th class="text-left py-3">Earned</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for allocation in completed_assignments %}
+                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <td class="py-3 font-mono">{{ allocation.order.order_number }}</td>
+                        <td class="py-3">{{ allocation.order.customer.full_name }}</td>
+                        <td class="py-3">{{ allocation.order.actual_return_date|date:"Y-m-d" }}</td>
+                        <td class="py-3">{{ allocation.percentage }}%</td>
+                        <td class="py-3 font-semibold text-green-600">${{ allocation.salary_earned|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-center py-8 text-gray-500">No completed assignments yet</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        gsap.from('.card', {
+            opacity: 0,
+            y: 20,
+            duration: 0.5,
+            stagger: 0.1,
+            ease: 'power2.out'
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %} - {{ title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        <h1 class="text-2xl font-bold mb-6">{{ title }}</h1>
+        
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+            <div class="bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 p-3 rounded-lg">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+            
+            <!-- User Selection (only shown for create form) -->
+            {% if not personnel %}
+            <div class="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg mb-4">
+                <p class="text-sm text-blue-800 dark:text-blue-200">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    Select a user with role 'Loading Personnel' to create a personnel profile.
+                    <a href="{% url 'accounts:user_create' %}?role=loading" class="underline font-medium">Create new user</a>
+                </p>
+            </div>
+            {% endif %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Left Column -->
+                <div class="space-y-4">
+                    <div>
+                        <label for="{{ form.user.id_for_label }}" class="block text-sm font-medium mb-2">
+                            User Account *
+                        </label>
+                        {{ form.user }}
+                        {% if form.user.errors %}
+                        <p class="text-red-600 text-xs mt-1">{{ form.user.errors.0 }}</p>
+                        {% endif %}
+                        {% if form.user.help_text %}
+                        <p class="text-gray-500 text-xs mt-1">{{ form.user.help_text }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.employee_id.id_for_label }}" class="block text-sm font-medium mb-2">
+                            Employee ID *
+                        </label>
+                        {{ form.employee_id }}
+                        {% if form.employee_id.errors %}
+                        <p class="text-red-600 text-xs mt-1">{{ form.employee_id.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.commission_rate.id_for_label }}" class="block text-sm font-medium mb-2">
+                            Commission Rate (%) *
+                        </label>
+                        {{ form.commission_rate }}
+                        {% if form.commission_rate.errors %}
+                        <p class="text-red-600 text-xs mt-1">{{ form.commission_rate.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.phone_extension.id_for_label }}" class="block text-sm font-medium mb-2">
+                            Phone Extension
+                        </label>
+                        {{ form.phone_extension }}
+                        {% if form.phone_extension.errors %}
+                        <p class="text-red-600 text-xs mt-1">{{ form.phone_extension.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Right Column -->
+                <div class="space-y-4">
+                    <div>
+                        <label for="{{ form.emergency_contact.id_for_label }}" class="block text-sm font-medium mb-2">
+                            Emergency Contact
+                        </label>
+                        {{ form.emergency_contact }}
+                        {% if form.emergency_contact.errors %}
+                        <p class="text-red-600 text-xs mt-1">{{ form.emergency_contact.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.emergency_phone.id_for_label }}" class="block text-sm font-medium mb-2">
+                            Emergency Phone
+                        </label>
+                        {{ form.emergency_phone }}
+                        {% if form.emergency_phone.errors %}
+                        <p class="text-red-600 text-xs mt-1">{{ form.emergency_phone.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.address.id_for_label }}" class="block text-sm font-medium mb-2">
+                            Address
+                        </label>
+                        {{ form.address }}
+                        {% if form.address.errors %}
+                        <p class="text-red-600 text-xs mt-1">{{ form.address.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium mb-2">
+                            Notes
+                        </label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                        <p class="text-red-600 text-xs mt-1">{{ form.notes.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex items-center space-x-3">
+                        {{ form.is_active }}
+                        <label for="{{ form.is_active.id_for_label }}" class="text-sm font-medium">
+                            Active
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <a href="{% url 'personnel:list' %}" class="btn-secondary">
+                    Cancel
+                </a>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-save mr-2"></i>{{ submit_text|default:"Save Personnel" }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        gsap.from('.bg-white', {
+            opacity: 0,
+            y: 30,
+            duration: 0.8,
+            ease: 'power2.out'
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %} - User Management{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">User Management</h1>
+        <a href="{% url 'accounts:user_create' %}" class="btn-primary">
+            <i class="fas fa-plus mr-2"></i>Add New User
+        </a>
+    </div>
+    
+    <!-- Filters -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 mb-6">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <input type="text" name="search" placeholder="Search users..." 
+                       value="{{ search_query }}" class="input-field">
+            </div>
+            <div>
+                <select name="role" class="input-field">
+                    <option value="">All Roles</option>
+                    {% for value, label in role_choices %}
+                    <option value="{{ value }}" {% if role_filter == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <select name="active" class="input-field">
+                    <option value="">All Status</option>
+                    <option value="active" {% if active_filter == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if active_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                </select>
+            </div>
+            <div class="flex space-x-2">
+                <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                    <i class="fas fa-search mr-2"></i>Filter
+                </button>
+                <a href="{% url 'accounts:user_list' %}" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600">
+                    <i class="fas fa-redo mr-2"></i>Reset
+                </a>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Users Table -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead class="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                        <th class="table-header">Username</th>
+                        <th class="table-header">Name</th>
+                        <th class="table-header">Email</th>
+                        <th class="table-header">Role</th>
+                        <th class="table-header">Phone</th>
+                        <th class="table-header">Status</th>
+                        <th class="table-header">Last Login</th>
+                        <th class="table-header">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                    {% for user in users %}
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                        <td class="table-cell font-medium">{{ user.username }}</td>
+                        <td class="table-cell">{{ user.get_full_name|default:"-" }}</td>
+                        <td class="table-cell">{{ user.email|default:"-" }}</td>
+                        <td class="table-cell">
+                            <span class="px-2 py-1 rounded-full text-xs 
+                                {% if user.role == 'admin' %}bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200
+                                {% elif user.role == 'loading' %}bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200
+                                {% else %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% endif %}">
+                                {{ user.get_role_display }}
+                            </span>
+                        </td>
+                        <td class="table-cell">{{ user.phone|default:"-" }}</td>
+                        <td class="table-cell">
+                            {% if user.is_active %}
+                            <span class="badge-success">Active</span>
+                            {% else %}
+                            <span class="badge-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td class="table-cell">{{ user.last_login|date:"Y-m-d H:i"|default:"Never" }}</td>
+                        <td class="table-cell">
+                            <div class="flex space-x-2">
+                                <a href="{% url 'accounts:user_edit' user.id %}" 
+                                   class="text-blue-600 hover:text-blue-800" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% if user.id != request.user.id %}
+                                <a href="{% url 'accounts:user_toggle_active' user.id %}" 
+                                   class="{% if user.is_active %}text-yellow-600 hover:text-yellow-800{% else %}text-green-600 hover:text-green-800{% endif %}"
+                                   title="{% if user.is_active %}Deactivate{% else %}Activate{% endif %}">
+                                    <i class="fas {% if user.is_active %}fa-ban{% else %}fa-check-circle{% endif %}"></i>
+                                </a>
+                                <a href="{% url 'accounts:user_delete' user.id %}" 
+                                   class="text-red-600 hover:text-red-800" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-8 text-gray-500">
+                            No users found
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Pagination (if needed) -->
+    {% if users.has_other_pages %}
+    <div class="mt-6 flex justify-center">
+        <div class="flex space-x-2">
+            {% if users.has_previous %}
+            <a href="?page={{ users.previous_page_number }}" class="px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow">
+                Previous
+            </a>
+            {% endif %}
+            
+            <span class="px-4 py-2 bg-green-600 text-white rounded-lg">
+                Page {{ users.number }} of {{ users.paginator.num_pages }}
+            </span>
+            
+            {% if users.has_next %}
+            <a href="?page={{ users.next_page_number }}" class="px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow">
+                Next
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        gsap.from('tbody tr', {
+            opacity: 0,
+            x: -20,
+            duration: 0.4,
+            stagger: 0.05,
+            ease: 'power2.out'
+        });
+    });
+</script>
+{% endblock %}

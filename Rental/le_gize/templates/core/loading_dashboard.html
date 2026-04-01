@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %} - Loading Dashboard{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <h1 class="text-3xl font-bold mb-8">Loading Personnel Dashboard</h1>
+    
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 transform hover:scale-105 transition-all duration-300">
+            <div class="text-2xl font-bold text-green-600">{{ allocations.count }}</div>
+            <div class="text-gray-600 dark:text-gray-400">Active Assignments</div>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 transform hover:scale-105 transition-all duration-300">
+            <div class="text-2xl font-bold text-blue-600">{{ completed.count }}</div>
+            <div class="text-gray-600 dark:text-gray-400">Completed Orders</div>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 transform hover:scale-105 transition-all duration-300">
+            <div class="text-2xl font-bold text-purple-600">${{ total_earned|floatformat:2 }}</div>
+            <div class="text-gray-600 dark:text-gray-400">Total Earned</div>
+        </div>
+    </div>
+    
+    <!-- Active Assignments -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Active Assignments</h2>
+        
+        {% if allocations %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead>
+                    <tr class="border-b dark:border-gray-700">
+                        <th class="text-left py-3 px-4">Order #</th>
+                        <th class="text-left py-3 px-4">Customer</th>
+                        <th class="text-left py-3 px-4">Your %</th>
+                        <th class="text-left py-3 px-4">Est. Salary</th>
+                        <th class="text-left py-3 px-4">Status</th>
+                        <th class="text-left py-3 px-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for allocation in allocations %}
+                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                        <td class="py-3 px-4">{{ allocation.order.order_number }}</td>
+                        <td class="py-3 px-4">{{ allocation.order.customer.full_name }}</td>
+                        <td class="py-3 px-4">{{ allocation.percentage }}%</td>
+                        <td class="py-3 px-4">${{ allocation.order.estimated_total|floatformat:2 }}</td>
+                        <td class="py-3 px-4">
+                            <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">
+                                {{ allocation.order.status }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <button class="text-blue-600 hover:text-blue-700 confirm-loading" data-id="{{ allocation.id }}">
+                                <i class="fas fa-check-circle mr-1"></i>Confirm Loading
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-gray-500 text-center py-8">No active assignments</p>
+        {% endif %}
+    </div>
+    
+    <!-- Completed History -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        <h2 class="text-xl font-semibold mb-4">Recent Completed</h2>
+        
+        {% if completed %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead>
+                    <tr class="border-b dark:border-gray-700">
+                        <th class="text-left py-3 px-4">Order #</th>
+                        <th class="text-left py-3 px-4">Customer</th>
+                        <th class="text-left py-3 px-4">Completed Date</th>
+                        <th class="text-left py-3 px-4">Salary Earned</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for allocation in completed %}
+                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                        <td class="py-3 px-4">{{ allocation.order.order_number }}</td>
+                        <td class="py-3 px-4">{{ allocation.order.customer.full_name }}</td>
+                        <td class="py-3 px-4">{{ allocation.order.actual_return_date|date:"Y-m-d" }}</td>
+                        <td class="py-3 px-4 font-semibold text-green-600">${{ allocation.salary_earned|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-gray-500 text-center py-8">No completed orders yet</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate cards
+        gsap.from('.bg-white', {
+            opacity: 0,
+            y: 30,
+            duration: 0.6,
+            stagger: 0.1,
+            ease: 'power2.out'
+        });
+        
+        // Confirm loading buttons
+        document.querySelectorAll('.confirm-loading').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Animate button
+                gsap.to(this, {
+                    scale: 0.95,
+                    duration: 0.1,
+                    yoyo: true,
+                    repeat: 1
+                });
+                
+                // Show success message
+                const row = this.closest('tr');
+                gsap.to(row, {
+                    backgroundColor: '#10b981',
+                    duration: 0.3,
+                    onComplete: () => {
+                        alert('Loading confirmed! Salary will be calculated upon order completion.');
+                        gsap.to(row, {
+                            backgroundColor: '',
+                            duration: 0.3
+                        });
+                    }
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

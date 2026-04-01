@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %} - Categories{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">
+            Categories
+        </h1>
+        <a href="{% url 'products:category_create' %}" class="btn-primary">
+            <i class="fas fa-plus mr-2"></i>Add Category
+        </a>
+    </div>
+
+    <!-- Categories Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for category in categories %}
+        <div class="category-card bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-2xl transition-all duration-300">
+            <div class="flex items-start justify-between mb-4">
+                <div>
+                    <h3 class="text-xl font-semibold mb-2">{{ category.name }}</h3>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm mb-3">
+                        {{ category.description|default:"No description"|truncatechars:100 }}
+                    </p>
+                </div>
+                <span class="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm">
+                    {{ category.product_count }} products
+                </span>
+            </div>
+            
+            <div class="flex justify-end space-x-2 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <a href="{% url 'products:category_edit' category.id %}" class="text-green-600 hover:text-green-800 p-2" title="Edit">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <a href="{% url 'products:category_delete' category.id %}" class="text-red-600 hover:text-red-800 p-2" title="Delete">
+                    <i class="fas fa-trash"></i>
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+            <i class="fas fa-tags text-6xl text-gray-400 mb-4"></i>
+            <p class="text-xl text-gray-600 dark:text-gray-400">No categories found</p>
+            <a href="{% url 'products:category_create' %}" class="btn-primary mt-4 inline-block">
+                <i class="fas fa-plus mr-2"></i>Add Your First Category
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        gsap.from('.category-card', {
+            opacity: 0,
+            y: 30,
+            duration: 0.6,
+            stagger: 0.1,
+            ease: 'power2.out'
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+
+{% block title %} - Products{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+        <h1 class="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">
+            Products Management
+        </h1>
+        <div class="mt-4 md:mt-0 flex space-x-3">
+            <a href="{% url 'products:category_list' %}" class="btn-secondary">
+                <i class="fas fa-tags mr-2"></i>Categories
+            </a>
+            <a href="{% url 'products:extra_list' %}" class="btn-secondary">
+                <i class="fas fa-puzzle-piece mr-2"></i>Extras
+            </a>
+            <a href="{% url 'products:create' %}" class="btn-primary">
+                <i class="fas fa-plus mr-2"></i>Add Product
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 mb-6">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div class="md:col-span-2">
+                <input type="text" name="search" placeholder="Search products..." 
+                       value="{{ search_query }}" class="input-field">
+            </div>
+            <div>
+                <select name="category" class="input-field">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}" {% if category_filter == category.id|stringformat:"s" %}selected{% endif %}>
+                        {{ category.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <select name="status" class="input-field">
+                    <option value="">All Status</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                </select>
+            </div>
+            <div>
+                <select name="stock" class="input-field">
+                    <option value="">All Stock</option>
+                    <option value="in" {% if stock_filter == 'in' %}selected{% endif %}>In Stock</option>
+                    <option value="low" {% if stock_filter == 'low' %}selected{% endif %}>Low Stock</option>
+                    <option value="out" {% if stock_filter == 'out' %}selected{% endif %}>Out of Stock</option>
+                </select>
+            </div>
+            <div class="flex space-x-2">
+                <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                    <i class="fas fa-search mr-2"></i>Filter
+                </button>
+                <a href="{% url 'products:list' %}" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600">
+                    <i class="fas fa-redo mr-2"></i>Reset
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {% for product in products %}
+        <div class="product-card bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+            <!-- Product Image -->
+            <div class="h-48 bg-gray-200 dark:bg-gray-700 relative">
+                {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+                {% else %}
+                <div class="w-full h-full flex items-center justify-center">
+                    <i class="fas fa-box text-6xl text-gray-400"></i>
+                </div>
+                {% endif %}
+                
+                <!-- Status Badge -->
+                <div class="absolute top-2 right-2">
+                    {% if product.is_active %}
+                    <span class="badge-success">Active</span>
+                    {% else %}
+                    <span class="badge-danger">Inactive</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Product Info -->
+            <div class="p-4">
+                <h3 class="text-lg font-semibold mb-2">{{ product.name }}</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                    {{ product.description|truncatechars:100 }}
+                </p>
+                
+                <!-- Category & Price -->
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-sm bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                        {{ product.category.name|default:"Uncategorized" }}
+                    </span>
+                    <span class="text-lg font-bold text-green-600">${{ product.price_per_day }}/day</span>
+                </div>
+                
+                <!-- Stock Status -->
+                <div class="mb-3">
+                    <div class="flex justify-between text-sm mb-1">
+                        <span>Stock:</span>
+                        <span class="{% if product.is_low_stock %}text-orange-600{% elif product.is_out_of_stock %}text-red-600{% else %}text-green-600{% endif %}">
+                            {{ product.available_stock }}/{{ product.total_stock }}
+                        </span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill {% if product.is_low_stock %}bg-orange-600{% elif product.is_out_of_stock %}bg-red-600{% else %}bg-green-600{% endif %}" 
+                             style="width: {% widthratio product.available_stock product.total_stock 100 %}%"></div>
+                    </div>
+                </div>
+                
+                <!-- Extras -->
+                {% if product.extras.all %}
+                <div class="mb-3">
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Available Extras:</p>
+                    <div class="flex flex-wrap gap-1">
+                        {% for extra in product.extras.all|slice:":3" %}
+                        <span class="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
+                            {{ extra.name }}
+                        </span>
+                        {% endfor %}
+                        {% if product.extras.count > 3 %}
+                        <span class="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                            +{{ product.extras.count|add:"-3" }} more
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Actions -->
+                <div class="flex justify-end space-x-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+                    <a href="{% url 'products:detail' product.id %}" class="text-blue-600 hover:text-blue-800 p-2" title="View">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    <a href="{% url 'products:edit' product.id %}" class="text-green-600 hover:text-green-800 p-2" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{% url 'products:toggle_active' product.id %}" class="text-yellow-600 hover:text-yellow-800 p-2" title="Toggle Active">
+                        <i class="fas fa-power-off"></i>
+                    </a>
+                    <a href="{% url 'products:delete' product.id %}" class="text-red-600 hover:text-red-800 p-2" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+            <i class="fas fa-box-open text-6xl text-gray-400 mb-4"></i>
+            <p class="text-xl text-gray-600 dark:text-gray-400">No products found</p>
+            <a href="{% url 'products:create' %}" class="btn-primary mt-4 inline-block">
+                <i class="fas fa-plus mr-2"></i>Add Your First Product
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="mt-8 flex justify-center">
+        <div class="flex space-x-2">
+            {% if page_obj.has_previous %}
+            <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if stock_filter %}&stock={{ stock_filter }}{% endif %}" 
+               class="px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700">
+                <i class="fas fa-angle-double-left"></i>
+            </a>
+            <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if stock_filter %}&stock={{ stock_filter }}{% endif %}" 
+               class="px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700">
+                <i class="fas fa-angle-left"></i>
+            </a>
+            {% endif %}
+
+            <span class="px-4 py-2 bg-green-600 text-white rounded-lg">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if stock_filter %}&stock={{ stock_filter }}{% endif %}" 
+               class="px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700">
+                <i class="fas fa-angle-right"></i>
+            </a>
+            <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if stock_filter %}&stock={{ stock_filter }}{% endif %}" 
+               class="px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700">
+                <i class="fas fa-angle-double-right"></i>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate product cards
+        gsap.from('.product-card', {
+            opacity: 0,
+            y: 30,
+            duration: 0.6,
+            stagger: 0.1,
+            ease: 'power2.out'
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Gize - Premium Rental System {% block title %}{% endblock %}</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- GSAP CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Simple clean navbar */
+        .navbar {
+            background: white;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+        }
+        
+        .dark .navbar {
+            background: #1f2937;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        /* User menu */
+        .user-menu {
+            @apply flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer;
+        }
+        
+        .user-avatar {
+            @apply w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-semibold;
+        }
+        
+        /* Dropdown menu */
+        .dropdown-menu {
+            position: absolute;
+            right: 0;
+            margin-top: 0.5rem;
+            width: 240px;
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            z-index: 50;
+        }
+        
+        .dark .dropdown-menu {
+            background: #1f2937;
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        .dropdown-item {
+            @apply block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/30 hover:text-green-700 dark:hover:text-green-400 transition-all duration-200 flex items-center gap-3;
+        }
+        
+        .dropdown-item i {
+            @apply w-5 text-gray-400 dark:text-gray-500;
+        }
+        
+        .dropdown-item:hover i {
+            @apply text-green-600 dark:text-green-400;
+        }
+        
+        .dropdown-divider {
+            @apply my-1 border-t border-gray-100 dark:border-gray-800;
+        }
+        
+        /* Page navigation cards */
+        .nav-card {
+            @apply bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 cursor-pointer border border-gray-100 dark:border-gray-700;
+        }
+        
+        .nav-card:hover {
+            @apply transform -translate-y-1;
+        }
+        
+        .nav-card-icon {
+            @apply w-14 h-14 rounded-2xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 flex items-center justify-center mb-4;
+        }
+        
+        .nav-card-icon i {
+            @apply text-3xl text-green-600 dark:text-green-400;
+        }
+        
+        .nav-card-title {
+            @apply text-lg font-semibold mb-2 text-gray-900 dark:text-white;
+        }
+        
+        .nav-card-description {
+            @apply text-sm text-gray-500 dark:text-gray-400;
+        }
+        
+        /* Quick action buttons */
+        .quick-action {
+            @apply px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 
+                   text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 
+                   flex items-center gap-2 text-sm font-medium border border-gray-200 dark:border-gray-700;
+        }
+        
+        .quick-action.active {
+            @apply bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 border-green-200 dark:border-green-800;
+        }
+        
+        .quick-action i {
+            @apply text-lg;
+        }
+        
+        /* Section headers */
+        .section-header {
+            @apply flex items-center justify-between mb-6;
+        }
+        
+        .section-title {
+            @apply text-2xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent;
+        }
+        
+        .section-actions {
+            @apply flex gap-3;
+        }
+        
+        /* Card styles */
+        .card {
+            @apply bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 transition-all duration-300 hover:shadow-2xl;
+        }
+        
+        /* Button styles */
+        .btn-primary {
+            @apply px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold;
+        }
+        
+        .btn-secondary {
+            @apply px-6 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-lg hover:from-gray-700 hover:to-gray-800 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold;
+        }
+        
+        .btn-danger {
+            @apply px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold;
+        }
+        
+        .btn-success {
+            @apply px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold;
+        }
+        
+        /* Input styles */
+        .input-field {
+            @apply w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white;
+        }
+        
+        /* Fix autofill styles for dark mode */
+        .input-field:-webkit-autofill,
+        .input-field:-webkit-autofill:hover,
+        .input-field:-webkit-autofill:focus {
+            -webkit-text-fill-color: #111827 !important;
+            -webkit-box-shadow: 0 0 0px 1000px white inset !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+        
+        .dark .input-field:-webkit-autofill,
+        .dark .input-field:-webkit-autofill:hover,
+        .dark .input-field:-webkit-autofill:focus {
+            -webkit-text-fill-color: #ffffff !important;
+            -webkit-box-shadow: 0 0 0px 1000px #374151 inset !important;
+        }
+        
+        /* Placeholder text color */
+        .input-field::placeholder {
+            color: #9ca3af;
+        }
+        
+        .dark .input-field::placeholder {
+            color: #6b7280;
+        }
+        
+        .file-input {
+            @apply w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 dark:file:bg-green-900 dark:file:text-green-200;
+        }
+        
+        .checkbox-input {
+            @apply h-5 w-5 text-green-600 focus:ring-green-500 border-gray-300 rounded;
+        }
+        
+        .select-multiple {
+            @apply w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white min-h-[120px];
+        }
+        
+        /* Badge styles */
+        .badge-success {
+            @apply px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-xs font-semibold;
+        }
+        
+        .badge-warning {
+            @apply px-2 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-full text-xs font-semibold;
+        }
+        
+        .badge-danger {
+            @apply px-2 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-full text-xs font-semibold;
+        }
+        
+        .badge-info {
+            @apply px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-xs font-semibold;
+        }
+        
+        .badge-active {
+            @apply px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold;
+        }
+        
+        .badge-completed {
+            @apply px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold;
+        }
+        
+        .badge-cancelled {
+            @apply px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold;
+        }
+        
+        /* Table styles */
+        .table-header {
+            @apply px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider;
+        }
+        
+        .table-cell {
+            @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100;
+        }
+        
+        /* Progress bar */
+        .progress-bar {
+            @apply h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden;
+        }
+        
+        .progress-fill {
+            @apply h-full bg-green-600 transition-all duration-500;
+        }
+        
+        /* Theme toggle */
+        .theme-toggle {
+            @apply fixed bottom-6 right-6 z-50 p-3 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 border border-gray-200 dark:border-gray-700;
+        }
+        
+        /* Mobile menu */
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 280px;
+            height: 100vh;
+            background: white;
+            box-shadow: -10px 0 25px -5px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s ease;
+            z-index: 100;
+            overflow-y: auto;
+        }
+        
+        .dark .mobile-menu {
+            background: #1f2937;
+        }
+        
+        .mobile-menu.open {
+            right: 0;
+        }
+        
+        .mobile-menu-header {
+            @apply p-6 border-b border-gray-200 dark:border-gray-700;
+        }
+        
+        .mobile-menu-item {
+            @apply block px-6 py-4 text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/30 hover:text-green-700 dark:hover:text-green-400 transition-all duration-200 border-b border-gray-100 dark:border-gray-800;
+        }
+        
+        .mobile-menu-subheader {
+            @apply px-6 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider bg-gray-50 dark:bg-gray-800;
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 3px solid #10b981;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Message animations */
+        .message-popup {
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        /* Line clamp */
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300 min-h-screen">
+    
+    <!-- Theme Toggle -->
+    <button id="theme-toggle" class="theme-toggle">
+        <i class="fas fa-sun dark:hidden text-yellow-500 text-xl"></i>
+        <i class="fas fa-moon hidden dark:inline text-blue-500 text-xl"></i>
+    </button>
+    
+    {% if user.is_authenticated %}
+    <!-- Simple Navbar - Only Logo and User Menu -->
+    <nav class="navbar fixed w-full z-40 top-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="
+                    {% if user.role == 'admin' or user.is_superuser %}
+                        {% url 'core:admin_dashboard' %}
+                    {% elif user.role == 'loading' %}
+                        {% url 'core:loading_dashboard' %}
+                    {% else %}
+                        {% url 'orders:order_page' %}
+                    {% endif %}" class="flex items-center">
+                        <span class="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">
+                            Le Gize
+                        </span>
+                    </a>
+                </div>
+                
+                <!-- User Menu -->
+                <div class="flex items-center">
+                    <!-- Mobile menu button -->
+                    <button id="mobile-menu-button" class="md:hidden mr-4 p-2 text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                    
+                    <!-- User dropdown -->
+                    <div class="relative" id="user-dropdown">
+                        <div class="user-menu" id="user-button">
+                            <div class="hidden md:block text-right">
+                                <div class="text-sm font-medium">{{ user.get_full_name|default:user.username }}</div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400">{{ user.get_role_display }}</div>
+                            </div>
+                            <div class="user-avatar">
+                                {{ user.username|first|upper }}
+                            </div>
+                        </div>
+                        
+                        <!-- Dropdown menu -->
+                        <div class="dropdown-menu hidden" id="user-menu">
+                            <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+                                <div class="font-medium">{{ user.get_full_name|default:user.username }}</div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400">{{ user.email|default:"No email" }}</div>
+                            </div>
+                            <a href="{% url 'accounts:profile' %}" class="dropdown-item">
+                                <i class="fas fa-user"></i>
+                                Profile
+                            </a>
+                            <a href="{% url 'accounts:profile_edit' %}" class="dropdown-item">
+                                <i class="fas fa-edit"></i>
+                                Edit Profile
+                            </a>
+                            <a href="{% url 'accounts:change_password' %}" class="dropdown-item">
+                                <i class="fas fa-key"></i>
+                                Change Password
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a href="{% url 'accounts:logout' %}" class="dropdown-item text-red-600 dark:text-red-400">
+                                <i class="fas fa-sign-out-alt"></i>
+                                Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobile-menu">
+        <div class="mobile-menu-header">
+            <div class="flex items-center gap-3">
+                <div class="user-avatar">{{ user.username|first|upper }}</div>
+                <div>
+                    <div class="font-medium">{{ user.get_full_name|default:user.username }}</div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">{{ user.get_role_display }}</div>
+                </div>
+            </div>
+        </div>
+        
+        {% if user.role == 'admin' or user.is_superuser %}
+            <div class="mobile-menu-subheader">MAIN</div>
+            <a href="{% url 'core:admin_dashboard' %}" class="mobile-menu-item">Dashboard</a>
+            
+            <div class="mobile-menu-subheader">PRODUCTS</div>
+            <a href="{% url 'products:list' %}" class="mobile-menu-item">All Products</a>
+            <a href="{% url 'products:category_list' %}" class="mobile-menu-item">Categories</a>
+            <a href="{% url 'products:extra_list' %}" class="mobile-menu-item">Extras</a>
+            
+            <div class="mobile-menu-subheader">ORDERS</div>
+            <a href="{% url 'orders:list' %}" class="mobile-menu-item">All Orders</a>
+            <a href="{% url 'orders:order_page' %}" class="mobile-menu-item">New Order</a>
+            <a href="{% url 'orders:return_page' %}" class="mobile-menu-item">Returns</a>
+            
+            <div class="mobile-menu-subheader">PERSONNEL</div>
+            <a href="{% url 'personnel:list' %}" class="mobile-menu-item">All Personnel</a>
+            
+            <div class="mobile-menu-subheader">REPORTS</div>
+            <a href="{% url 'reports:dashboard' %}" class="mobile-menu-item">Reports Dashboard</a>
+            
+            <div class="mobile-menu-subheader">ADMIN</div>
+            <a href="{% url 'accounts:user_list' %}" class="mobile-menu-item">Users</a>
+            <a href="{% url 'admin:index' %}" class="mobile-menu-item">Admin Panel</a>
+            
+        {% elif user.role == 'loading' %}
+            <div class="mobile-menu-subheader">MAIN</div>
+            <a href="{% url 'core:loading_dashboard' %}" class="mobile-menu-item">Dashboard</a>
+            <a href="{% url 'orders:assigned_orders' %}" class="mobile-menu-item">My Assignments</a>
+            
+        {% elif user.role == 'reception' %}
+            <div class="mobile-menu-subheader">MAIN</div>
+            <a href="{% url 'orders:order_page' %}" class="mobile-menu-item">New Order</a>
+            <a href="{% url 'orders:return_page' %}" class="mobile-menu-item">Returns</a>
+            <a href="{% url 'orders:list' %}" class="mobile-menu-item">Order Log</a>
+        {% endif %}
+        
+        <div class="mobile-menu-subheader">ACCOUNT</div>
+        <a href="{% url 'accounts:profile' %}" class="mobile-menu-item">Profile</a>
+        <a href="{% url 'accounts:logout' %}" class="mobile-menu-item text-red-600">Logout</a>
+    </div>
+    
+    <!-- Overlay for mobile menu -->
+    <div id="mobile-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden transition-opacity duration-300"></div>
+    
+    <!-- Main Content with padding for fixed nav -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-12 page-content">
+        
+        <!-- Page Navigation Cards (shown on all pages) -->
+        <div class="mb-8">
+            <div class="flex flex-wrap gap-2">
+                {% if user.role == 'admin' or user.is_superuser %}
+                    <a href="{% url 'core:admin_dashboard' %}" class="quick-action {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="{% url 'products:list' %}" class="quick-action {% if 'products' in request.path %}active{% endif %}">
+                        <i class="fas fa-box"></i>
+                        <span>Products</span>
+                    </a>
+                    <a href="{% url 'orders:list' %}" class="quick-action {% if 'orders' in request.path and 'return' not in request.path %}active{% endif %}">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Orders</span>
+                    </a>
+                    <a href="{% url 'orders:return_page' %}" class="quick-action {% if 'return' in request.path %}active{% endif %}">
+                        <i class="fas fa-undo-alt"></i>
+                        <span>Returns</span>
+                    </a>
+                    <a href="{% url 'personnel:list' %}" class="quick-action {% if 'personnel' in request.path %}active{% endif %}">
+                        <i class="fas fa-users"></i>
+                        <span>Personnel</span>
+                    </a>
+                    <a href="{% url 'reports:dashboard' %}" class="quick-action {% if 'reports' in request.path %}active{% endif %}">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reports</span>
+                    </a>
+                    <a href="{% url 'accounts:user_list' %}" class="quick-action {% if 'users' in request.path %}active{% endif %}">
+                        <i class="fas fa-user-cog"></i>
+                        <span>Users</span>
+                    </a>
+                    
+                {% elif user.role == 'loading' %}
+                    <a href="{% url 'core:loading_dashboard' %}" class="quick-action {% if request.resolver_match.url_name == 'loading_dashboard' %}active{% endif %}">
+                        <i class="fas fa-truck"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="{% url 'orders:assigned_orders' %}" class="quick-action {% if 'assigned' in request.path %}active{% endif %}">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>My Assignments</span>
+                    </a>
+                    
+                {% elif user.role == 'reception' %}
+                    <a href="{% url 'orders:order_page' %}" class="quick-action {% if request.resolver_match.url_name == 'order_page' %}active{% endif %}">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>New Order</span>
+                    </a>
+                    <a href="{% url 'orders:return_page' %}" class="quick-action {% if request.resolver_match.url_name == 'return_page' %}active{% endif %}">
+                        <i class="fas fa-undo-alt"></i>
+                        <span>Returns</span>
+                    </a>
+                    <a href="{% url 'orders:list' %}" class="quick-action {% if request.resolver_match.url_name == 'list' %}active{% endif %}">
+                        <i class="fas fa-history"></i>
+                        <span>Order Log</span>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+    <!-- Main Content without padding for login -->
+    <main class="page-content">
+    {% endif %}
+        
+        <!-- Messages -->
+        {% if messages %}
+        <div class="messages-container mb-8">
+            {% for message in messages %}
+            <div class="message-popup p-4 rounded-lg shadow-lg mb-4 
+                {% if message.tags == 'success' %}bg-green-50 dark:bg-green-900/30 border-l-4 border-green-500 text-green-800 dark:text-green-200
+                {% elif message.tags == 'error' %}bg-red-50 dark:bg-red-900/30 border-l-4 border-red-500 text-red-800 dark:text-red-200
+                {% elif message.tags == 'warning' %}bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-500 text-yellow-800 dark:text-yellow-200
+                {% else %}bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 text-blue-800 dark:text-blue-200{% endif %}">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        {% if message.tags == 'success' %}
+                        <i class="fas fa-check-circle text-green-500"></i>
+                        {% elif message.tags == 'error' %}
+                        <i class="fas fa-exclamation-circle text-red-500"></i>
+                        {% elif message.tags == 'warning' %}
+                        <i class="fas fa-exclamation-triangle text-yellow-500"></i>
+                        {% else %}
+                        <i class="fas fa-info-circle text-blue-500"></i>
+                        {% endif %}
+                    </div>
+                    <div class="ml-3">{{ message }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </main>
+    
+    <script>
+        // DOM Content Loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Page transition
+            gsap.from('.page-content', {
+                opacity: 0,
+                y: 20,
+                duration: 0.6,
+                ease: 'power2.out'
+            });
+            
+            // Message animations
+            document.querySelectorAll('.message-popup').forEach((msg, i) => {
+                gsap.from(msg, {
+                    y: -30,
+                    opacity: 0,
+                    duration: 0.4,
+                    delay: i * 0.1,
+                    ease: 'back.out'
+                });
+                
+                setTimeout(() => {
+                    gsap.to(msg, {
+                        opacity: 0,
+                        y: -20,
+                        duration: 0.3,
+                        onComplete: () => msg.remove()
+                    });
+                }, 5000);
+            });
+            
+            // User dropdown toggle
+            const userButton = document.getElementById('user-button');
+            const userMenu = document.getElementById('user-menu');
+            
+            if (userButton && userMenu) {
+                userButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    userMenu.classList.toggle('hidden');
+                    
+                    if (!userMenu.classList.contains('hidden')) {
+                        gsap.from(userMenu, {
+                            opacity: 0,
+                            y: -10,
+                            duration: 0.2
+                        });
+                    }
+                });
+            }
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('#user-dropdown')) {
+                    if (userMenu) userMenu.classList.add('hidden');
+                }
+            });
+            
+            // Mobile menu
+            const mobileMenu = document.getElementById('mobile-menu');
+            const mobileOverlay = document.getElementById('mobile-overlay');
+            const mobileButton = document.getElementById('mobile-menu-button');
+            
+            if (mobileButton) {
+                mobileButton.addEventListener('click', () => {
+                    mobileMenu.classList.add('open');
+                    mobileOverlay.classList.remove('hidden');
+                    gsap.from(mobileMenu, { x: 50, opacity: 0, duration: 0.3 });
+                });
+            }
+            
+            if (mobileOverlay) {
+                mobileOverlay.addEventListener('click', () => {
+                    mobileMenu.classList.remove('open');
+                    mobileOverlay.classList.add('hidden');
+                });
+            }
+            
+            // Animate quick action buttons
+            gsap.from('.quick-action', {
+                opacity: 0,
+                y: 10,
+                duration: 0.4,
+                stagger: 0.05,
+                delay: 0.2,
+                ease: 'power2.out'
+            });
+        });
+        
+        // Theme Toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+        
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        if (savedTheme === 'dark') {
+            html.classList.add('dark');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            gsap.to(themeToggle, {
+                rotation: 360,
+                duration: 0.5,
+                onComplete: () => gsap.set(themeToggle, { rotation: 0 })
+            });
+            
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+        
+        // Helper function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        // Loading spinner
+        function showLoading(show = true) {
+            const existing = document.getElementById('global-spinner');
+            if (show && !existing) {
+                const spinner = document.createElement('div');
+                spinner.id = 'global-spinner';
+                spinner.className = 'fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50';
+                spinner.innerHTML = '<div class="spinner"></div>';
+                document.body.appendChild(spinner);
+                gsap.from(spinner, { opacity: 0 });
+            } else if (!show && existing) {
+                gsap.to(existing, {
+                    opacity: 0,
+                    duration: 0.2,
+                    onComplete: () => existing.remove()
+                });
+            }
+        }
+        
+        // Confetti celebration
+        function celebrate() {
+            const colors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.style.position = 'fixed';
+                    confetti.style.width = '8px';
+                    confetti.style.height = '8px';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.borderRadius = '50%';
+                    confetti.style.left = Math.random() * window.innerWidth + 'px';
+                    confetti.style.top = '-10px';
+                    confetti.style.zIndex = '9999';
+                    confetti.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+                    document.body.appendChild(confetti);
+                    
+                    gsap.to(confetti, {
+                        y: window.innerHeight + 10,
+                        x: (Math.random() - 0.5) * 200,
+                        rotation: Math.random() * 360,
+                        duration: 1.5 + Math.random(),
+                        ease: 'power1.out',
+                        onComplete: () => confetti.remove()
+                    });
+                }, i * 20);
+            }
+        }
+        
+        // Expose global helpers
+        window.leGize = {
+            showLoading: showLoading,
+            celebrate: celebrate,
+            getCookie: getCookie
+        };
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
