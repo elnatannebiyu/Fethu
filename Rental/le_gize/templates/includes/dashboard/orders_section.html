@@ -1,0 +1,58 @@
+<!-- Order Management Section -->
+<div class="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-2xl p-6 sm:p-8 border border-blue-200 dark:border-blue-800/50">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-0 mb-8">
+        <div>
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-shopping-cart text-white text-xl"></i>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Order Management</h2>
+            </div>
+            <p class="text-gray-600 dark:text-gray-400 ml-0 sm:ml-15 text-sm sm:text-base">Create, track, and manage rental orders</p>
+        </div>
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+            <a href="{% url 'orders:list' %}" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 font-medium text-sm sm:text-base">
+                <i class="fas fa-list"></i>
+                <span>View All</span>
+            </a>
+            <a href="{% url 'orders:order_page' %}" class="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 font-medium text-sm sm:text-base">
+                <i class="fas fa-plus"></i>
+                <span>New Order</span>
+            </a>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+        <!-- All Orders Card -->
+        <a href="{% url 'orders:list' %}" class="group relative bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden hover:scale-105">
+            <div class="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div class="relative p-8">
+                <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-clipboard-list text-white text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">All Orders</h3>
+                <p class="text-gray-600 dark:text-gray-400 mb-4">View, search, and manage all rental orders</p>
+                <div class="flex items-center text-blue-600 dark:text-blue-400 font-semibold group-hover:translate-x-2 transition-transform duration-300">
+                    <span>Browse Orders</span>
+                    <i class="fas fa-arrow-right ml-2"></i>
+                </div>
+            </div>
+        </a>
+        
+        <!-- New Order Card -->
+        <a href="{% url 'orders:order_page' %}" class="group relative bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden hover:scale-105">
+            <div class="absolute inset-0 bg-gradient-to-br from-green-500/10 to-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div class="relative p-8">
+                <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-plus-circle text-white text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">New Order</h3>
+                <p class="text-gray-600 dark:text-gray-400 mb-4">Create a new rental order for customers</p>
+                <div class="flex items-center text-green-600 dark:text-green-400 font-semibold group-hover:translate-x-2 transition-transform duration-300">
+                    <span>Create Order</span>
+                    <i class="fas fa-arrow-right ml-2"></i>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>

@@ -21,9 +21,11 @@ class ProductForm(forms.ModelForm):
             elif field_name == 'is_active':
                 field.widget.attrs.update({'class': 'checkbox-input'})
             elif field_name == 'extras':
-                field.widget.attrs.update({'class': 'select-multiple input-field'})
+                field.widget.attrs.update({'class': 'w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white'})
+            elif field_name in ['description']:
+                field.widget.attrs.update({'class': 'w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400'})
             else:
-                field.widget.attrs.update({'class': 'input-field'})
+                field.widget.attrs.update({'class': 'w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400'})
         
         # Make image not required
         self.fields['image'].required = False
@@ -32,12 +34,9 @@ class ProductForm(forms.ModelForm):
         if not self.instance.pk:
             self.fields['available_stock'].required = False
             self.fields['available_stock'].widget.attrs['readonly'] = True
-            self.fields['available_stock'].help_text = "Will be set equal to Total Stock"
         
         # Set help texts
         self.fields['total_stock'].help_text = "Total number of items in inventory"
-        self.fields['available_stock'].help_text = "Number of items available for rent"
-        self.fields['reserved_stock'].help_text = "Number of items currently reserved"
         self.fields['price_per_day'].help_text = "Price per day in USD"
     
     def clean(self):
@@ -70,24 +69,31 @@ class CategoryForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for field in self.fields:
-            self.fields[field].widget.attrs.update({'class': 'input-field'})
+        for field_name, field in self.fields.items():
+            if field_name in ['description']:
+                field.widget.attrs.update({'class': 'w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400'})
+            else:
+                field.widget.attrs.update({'class': 'w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400'})
 
 class ExtraForm(forms.ModelForm):
     class Meta:
         model = Extra
-        fields = ['name', 'description', 'price_per_day']
+        fields = ['name', 'description', 'price_per_day', 'one_time_fee']
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Enter extra description...'}),
         }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for field in self.fields:
-            self.fields[field].widget.attrs.update({'class': 'input-field'})
+        for field_name, field in self.fields.items():
+            if field_name in ['description']:
+                field.widget.attrs.update({'class': 'w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400'})
+            else:
+                field.widget.attrs.update({'class': 'w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400'})
         
         # Add help text
         self.fields['price_per_day'].help_text = "Price per day in USD"
+        self.fields['one_time_fee'].help_text = "One-time charge when the extra is added (USD)"
     
     def clean_price_per_day(self):
         price = self.cleaned_data.get('price_per_day')

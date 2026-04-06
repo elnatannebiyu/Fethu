@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'layout/base.html' %}
 
 {% block title %} - Loading Dashboard{% endblock %}
 
@@ -36,7 +36,7 @@
                         <th class="text-left py-3 px-4">Order #</th>
                         <th class="text-left py-3 px-4">Customer</th>
                         <th class="text-left py-3 px-4">Your %</th>
-                        <th class="text-left py-3 px-4">Est. Salary</th>
+                        <th class="text-left py-3 px-4">Commission</th>
                         <th class="text-left py-3 px-4">Status</th>
                         <th class="text-left py-3 px-4">Actions</th>
                     </tr>
@@ -47,7 +47,12 @@
                         <td class="py-3 px-4">{{ allocation.order.order_number }}</td>
                         <td class="py-3 px-4">{{ allocation.order.customer.full_name }}</td>
                         <td class="py-3 px-4">{{ allocation.percentage }}%</td>
-                        <td class="py-3 px-4">${{ allocation.order.estimated_total|floatformat:2 }}</td>
+                        <td class="py-3 px-4">
+                            ${{ allocation.expected_commission|floatformat:2 }}
+                            <p class="text-xs text-gray-400">
+                                Paid ${{ allocation.commission_paid|floatformat:2 }} · Remaining ${{ allocation.remaining_commission|floatformat:2 }}
+                            </p>
+                        </td>
                         <td class="py-3 px-4">
                             <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">
                                 {{ allocation.order.status }}

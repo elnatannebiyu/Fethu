@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'layout/base.html' %}
 
 {% block title %} - Order {{ order.order_number }}{% endblock %}
 
@@ -102,9 +102,15 @@
                     <p class="font-medium">{{ allocation.personnel.name }}</p>
                     <p class="text-sm text-gray-500">{{ allocation.percentage }}% allocation</p>
                 </div>
-                {% if allocation.salary_earned > 0 %}
-                <p class="font-semibold text-green-600">${{ allocation.salary_earned|floatformat:2 }}</p>
-                {% endif %}
+                <div class="text-right">
+                    <p class="font-semibold text-green-600">${{ allocation.expected_commission|floatformat:2 }}</p>
+                    <p class="text-xs text-gray-400">
+                        Paid ${{ allocation.commission_paid|floatformat:2 }} · Remaining ${{ allocation.remaining_commission|floatformat:2 }}
+                    </p>
+                    {% if allocation.salary_earned > 0 %}
+                    <p class="text-xs text-green-600">Final payout: ${{ allocation.salary_earned|floatformat:2 }}</p>
+                    {% endif %}
+                </div>
             </div>
             {% endfor %}
         </div>

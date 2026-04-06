@@ -1,268 +1,46 @@
-{% extends 'base.html' %}
+{% extends 'layout/base.html' %}
 
 {% block title %} - Admin Dashboard{% endblock %}
 
 {% block content %}
 <div class="space-y-8">
     <!-- Welcome Section -->
-    <div class="flex justify-between items-center">
-        <div>
-            <h1 class="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">
-                Welcome back, {{ user.get_full_name|default:user.username }}!
-            </h1>
-            <p class="text-gray-600 dark:text-gray-400 mt-2">
-                Here's what's happening with your rental business today.
-            </p>
-        </div>
-        <div class="text-right">
-            <div class="text-sm text-gray-500 dark:text-gray-400">{{ now|date:"l, F j, Y" }}</div>
+    <div class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-6 sm:p-8 border border-green-200 dark:border-green-800/50">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-0">
+            <div>
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-14 h-14 bg-gradient-to-br from-green-600 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
+                        <i class="fas fa-wave-square text-white text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
+                            Welcome back!
+                        </h1>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ user.get_full_name|default:user.username }}</p>
+                    </div>
+                </div>
+                <p class="text-gray-600 dark:text-gray-400 mt-4 text-sm sm:text-base">
+                    Here's what's happening with your rental business today.
+                </p>
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 shadow-md border border-gray-200 dark:border-gray-700 text-center sm:text-right">
+                <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Today's Date</div>
+                <div class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">{{ now|date:"l" }}</div>
+                <div class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ now|date:"F j, Y" }}</div>
+            </div>
         </div>
     </div>
     
-    <!-- Quick Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div class="card">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Total Orders</p>
-                    <p class="text-2xl font-bold">{{ total_orders|default:0 }}</p>
-                </div>
-                <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-shopping-cart text-green-600 dark:text-green-400 text-xl"></i>
-                </div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Active Orders</p>
-                    <p class="text-2xl font-bold">{{ active_orders|default:0 }}</p>
-                </div>
-                <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-play-circle text-blue-600 dark:text-blue-400 text-xl"></i>
-                </div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Total Revenue</p>
-                    <p class="text-2xl font-bold">${{ total_revenue|default:0|floatformat:2 }}</p>
-                </div>
-                <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-dollar-sign text-purple-600 dark:text-purple-400 text-xl"></i>
-                </div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Products</p>
-                    <p class="text-2xl font-bold">{{ total_products|default:0 }}</p>
-                </div>
-                <div class="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-box text-orange-600 dark:text-orange-400 text-xl"></i>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Dashboard Stats -->
+    {% include 'includes/dashboard/stats.html' %}
     
     <!-- Navigation Sections -->
     <div class="space-y-6">
-        <!-- Products Section -->
-        <div>
-            <div class="section-header">
-                <h2 class="section-title">Products Management</h2>
-                <div class="section-actions">
-                    <a href="{% url 'products:list' %}" class="quick-action">
-                        <i class="fas fa-boxes"></i>
-                        <span>All Products</span>
-                    </a>
-                    <a href="{% url 'products:create' %}" class="quick-action">
-                        <i class="fas fa-plus-circle"></i>
-                        <span>Add Product</span>
-                    </a>
-                </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <a href="{% url 'products:list' %}" class="nav-card">
-                    <div class="nav-card-icon">
-                        <i class="fas fa-boxes"></i>
-                    </div>
-                    <h3 class="nav-card-title">Products</h3>
-                    <p class="nav-card-description">Manage your rental inventory</p>
-                </a>
-                
-                <a href="{% url 'products:category_list' %}" class="nav-card">
-                    <div class="nav-card-icon">
-                        <i class="fas fa-tags"></i>
-                    </div>
-                    <h3 class="nav-card-title">Categories</h3>
-                    <p class="nav-card-description">Organize products by category</p>
-                </a>
-                
-                <a href="{% url 'products:extra_list' %}" class="nav-card">
-                    <div class="nav-card-icon">
-                        <i class="fas fa-puzzle-piece"></i>
-                    </div>
-                    <h3 class="nav-card-title">Extras</h3>
-                    <p class="nav-card-description">Manage add-ons and accessories</p>
-                </a>
-            </div>
-        </div>
-        
-        <!-- Orders Section -->
-        <div>
-            <div class="section-header">
-                <h2 class="section-title">Order Management</h2>
-                <div class="section-actions">
-                    <a href="{% url 'orders:list' %}" class="quick-action">
-                        <i class="fas fa-list"></i>
-                        <span>All Orders</span>
-                    </a>
-                    <a href="{% url 'orders:order_page' %}" class="quick-action">
-                        <i class="fas fa-plus-circle"></i>
-                        <span>New Order</span>
-                    </a>
-                </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <a href="{% url 'orders:list' %}" class="nav-card">
-                    <div class="nav-card-icon">
-                        <i class="fas fa-clipboard-list"></i>
-                    </div>
-                    <h3 class="nav-card-title">All Orders</h3>
-                    <p class="nav-card-description">View and manage all orders</p>
-                </a>
-                
-                <a href="{% url 'orders:order_page' %}" class="nav-card">
-                    <div class="nav-card-icon">
-                        <i class="fas fa-plus-circle"></i>
-                    </div>
-                    <h3 class="nav-card-title">New Order</h3>
-                    <p class="nav-card-description">Create a new rental order</p>
-                </a>
-                
-                <a href="{% url 'orders:return_page' %}" class="nav-card">
-                    <div class="nav-card-icon">
-                        <i class="fas fa-undo-alt"></i>
-                    </div>
-                    <h3 class="nav-card-title">Returns</h3>
-                    <p class="nav-card-description">Process order returns</p>
-                </a>
-            </div>
-        </div>
-        
-        <!-- Personnel Section -->
-        <div>
-            <div class="section-header">
-                <h2 class="section-title">Personnel Management</h2>
-                <div class="section-actions">
-                    <a href="{% url 'personnel:list' %}" class="quick-action">
-                        <i class="fas fa-id-card"></i>
-                        <span>All Personnel</span>
-                    </a>
-                    <a href="{% url 'personnel:create' %}" class="quick-action">
-                        <i class="fas fa-user-plus"></i>
-                        <span>Add Personnel</span>
-                    </a>
-                </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <a href="{% url 'personnel:list' %}" class="nav-card">
-                    <div class="nav-card-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <h3 class="nav-card-title">Loading Personnel</h3>
-                    <p class="nav-card-description">Manage your team members</p>
-                </a>
-            </div>
-        </div>
-        
-        <!-- Reports Section -->
-        <div>
-            <div class="section-header">
-                <h2 class="section-title">Reports & Analytics</h2>
-                <div class="section-actions">
-                    <a href="{% url 'reports:dashboard' %}" class="quick-action">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Report Dashboard</span>
-                    </a>
-                </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <a href="{% url 'reports:orders_report' %}" class="nav-card">
-                    <div class="nav-card-icon">
-                        <i class="fas fa-file-invoice"></i>
-                    </div>
-                    <h3 class="nav-card-title">Orders Report</h3>
-                    <p class="nav-card-description">View order history and statistics</p>
-                </a>
-                
-                <a href="{% url 'reports:products_report' %}" class="nav-card">
-                    <div class="nav-card-icon">
-                        <i class="fas fa-box"></i>
-                    </div>
-                    <h3 class="nav-card-title">Products Report</h3>
-                    <p class="nav-card-description">Product usage and popularity</p>
-                </a>
-                
-                <a href="{% url 'reports:personnel_report' %}" class="nav-card">
-                    <div class="nav-card-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <h3 class="nav-card-title">Personnel Report</h3>
-                    <p class="nav-card-description">Salary and performance metrics</p>
-                </a>
-                
-                <a href="{% url 'reports:financial_report' %}" class="nav-card">
-                    <div class="nav-card-icon">
-                        <i class="fas fa-dollar-sign"></i>
-                    </div>
-                    <h3 class="nav-card-title">Financial Report</h3>
-                    <p class="nav-card-description">Revenue and profit analysis</p>
-                </a>
-            </div>
-        </div>
-        
-        <!-- Users Section (Admin only) -->
-        {% if user.role == 'admin' or user.is_superuser %}
-        <div>
-            <div class="section-header">
-                <h2 class="section-title">User Management</h2>
-                <div class="section-actions">
-                    <a href="{% url 'accounts:user_list' %}" class="quick-action">
-                        <i class="fas fa-users"></i>
-                        <span>All Users</span>
-                    </a>
-                    <a href="{% url 'accounts:user_create' %}" class="quick-action">
-                        <i class="fas fa-user-plus"></i>
-                        <span>Add User</span>
-                    </a>
-                </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <a href="{% url 'accounts:user_list' %}" class="nav-card">
-                    <div class="nav-card-icon">
-                        <i class="fas fa-user-cog"></i>
-                    </div>
-                    <h3 class="nav-card-title">System Users</h3>
-                    <p class="nav-card-description">Manage user accounts and permissions</p>
-                </a>
-                
-                <a href="{% url 'admin:index' %}" class="nav-card">
-                    <div class="nav-card-icon">
-                        <i class="fas fa-cog"></i>
-                    </div>
-                    <h3 class="nav-card-title">Admin Panel</h3>
-                    <p class="nav-card-description">Django administration interface</p>
-                </a>
-            </div>
-        </div>
-        {% endif %}
+        {% include 'includes/dashboard/products_section.html' %}
+        {% include 'includes/dashboard/orders_section.html' %}
+        {% include 'includes/dashboard/personnel_section.html' %}
+        {% include 'includes/dashboard/reports_section.html' %}
+        {% include 'includes/dashboard/users_section.html' %}
     </div>
 </div>
 

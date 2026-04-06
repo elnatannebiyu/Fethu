@@ -1,0 +1,223 @@
+<script>
+    // DOM Content Loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Page transition
+        gsap.from('.page-content', {
+            opacity: 0,
+            y: 20,
+            duration: 0.6,
+            ease: 'power2.out'
+        });
+        
+        // Message animations
+        document.querySelectorAll('.message-popup').forEach((msg, i) => {
+            gsap.fromTo(msg, 
+                {
+                    y: -30,
+                    opacity: 0
+                },
+                {
+                    y: 0,
+                    opacity: 1,
+                    duration: 0.4,
+                    delay: i * 0.1,
+                    ease: 'back.out'
+                }
+            );
+            
+            // Determine timeout based on message type
+            const isError = msg.classList.contains('border-red-500');
+            const timeout = isError ? 10000 : 5000; // 10 seconds for errors, 5 for others
+            
+            let timeoutId = setTimeout(() => {
+                gsap.to(msg, {
+                    opacity: 0,
+                    y: -20,
+                    duration: 0.3,
+                    onComplete: () => msg.remove()
+                });
+            }, timeout);
+            
+            // Handle close button click
+            const closeBtn = msg.querySelector('.message-close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    clearTimeout(timeoutId);
+                    gsap.to(msg, {
+                        opacity: 0,
+                        y: -20,
+                        duration: 0.3,
+                        onComplete: () => msg.remove()
+                    });
+                });
+            }
+        });
+        
+        // User dropdown toggle
+        const userButton = document.getElementById('user-button');
+        const userMenu = document.getElementById('user-menu');
+        
+        if (userButton && userMenu) {
+            userButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userMenu.classList.toggle('hidden');
+                
+                if (!userMenu.classList.contains('hidden')) {
+                    gsap.from(userMenu, {
+                        opacity: 0,
+                        y: -10,
+                        duration: 0.2
+                    });
+                }
+            });
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#user-dropdown')) {
+                if (userMenu) userMenu.classList.add('hidden');
+            }
+        });
+        
+        // Mobile menu
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileOverlay = document.getElementById('mobile-overlay');
+        const mobileButton = document.getElementById('mobile-menu-button');
+        const mobileMenuClose = document.getElementById('mobile-menu-close');
+        
+        function openMobileMenu() {
+            mobileMenu.classList.remove('translate-x-full');
+            mobileOverlay.classList.remove('hidden');
+        }
+        
+        function closeMobileMenu() {
+            mobileMenu.classList.add('translate-x-full');
+            mobileOverlay.classList.add('hidden');
+        }
+        
+        if (mobileButton) {
+            mobileButton.addEventListener('click', openMobileMenu);
+        }
+        
+        if (mobileMenuClose) {
+            mobileMenuClose.addEventListener('click', closeMobileMenu);
+        }
+        
+        if (mobileOverlay) {
+            mobileOverlay.addEventListener('click', closeMobileMenu);
+        }
+        
+        // Close menu when clicking on a link
+        document.querySelectorAll('#mobile-menu a').forEach(link => {
+            link.addEventListener('click', closeMobileMenu);
+        });
+        
+        // Animate quick action buttons
+        gsap.from('.quick-action', {
+            opacity: 0,
+            y: 10,
+            duration: 0.4,
+            stagger: 0.05,
+            delay: 0.2,
+            ease: 'power2.out'
+        });
+    });
+    
+    // Theme Toggle
+    const themeToggle = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+    
+    // Load saved theme
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (savedTheme === 'dark') {
+        html.classList.add('dark');
+    }
+    
+    themeToggle.addEventListener('click', () => {
+        gsap.to(themeToggle, {
+            rotation: 360,
+            duration: 0.5,
+            onComplete: () => gsap.set(themeToggle, { rotation: 0 })
+        });
+        
+        if (html.classList.contains('dark')) {
+            html.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+        } else {
+            html.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+        }
+    });
+    
+    // Helper function to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Loading spinner
+    function showLoading(show = true) {
+        const existing = document.getElementById('global-spinner');
+        if (show && !existing) {
+            const spinner = document.createElement('div');
+            spinner.id = 'global-spinner';
+            spinner.className = 'fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50';
+            spinner.innerHTML = '<div class="spinner"></div>';
+            document.body.appendChild(spinner);
+            gsap.from(spinner, { opacity: 0 });
+        } else if (!show && existing) {
+            gsap.to(existing, {
+                opacity: 0,
+                duration: 0.2,
+                onComplete: () => existing.remove()
+            });
+        }
+    }
+    
+    // Confetti celebration
+    function celebrate() {
+        const colors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
+        for (let i = 0; i < 50; i++) {
+            setTimeout(() => {
+                const confetti = document.createElement('div');
+                confetti.style.position = 'fixed';
+                confetti.style.width = '8px';
+                confetti.style.height = '8px';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.borderRadius = '50%';
+                confetti.style.left = Math.random() * window.innerWidth + 'px';
+                confetti.style.top = '-10px';
+                confetti.style.zIndex = '9999';
+                confetti.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+                document.body.appendChild(confetti);
+                
+                gsap.to(confetti, {
+                    y: window.innerHeight + 10,
+                    x: (Math.random() - 0.5) * 200,
+                    rotation: Math.random() * 360,
+                    duration: 1.5 + Math.random(),
+                    ease: 'power1.out',
+                    onComplete: () => confetti.remove()
+                });
+            }, i * 20);
+        }
+    }
+    
+    // Expose global helpers
+    window.leGize = {
+        showLoading: showLoading,
+        celebrate: celebrate,
+        getCookie: getCookie
+    };
+</script>

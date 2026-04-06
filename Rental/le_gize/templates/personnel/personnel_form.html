@@ -1,127 +1,216 @@
-{% extends 'base.html' %}
+{% extends 'layout/base.html' %}
 
 {% block title %} - {{ title }}{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto">
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-        <h1 class="text-2xl font-bold mb-6">{{ title }}</h1>
+<div class="max-w-4xl mx-auto">
+    <!-- Back Button -->
+    <div class="mb-6">
+        <a href="{% url 'personnel:list' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium">
+            <i class="fas fa-arrow-left"></i>
+            <span>Back to Personnel</span>
+        </a>
+    </div>
+
+    <!-- Header -->
+    <div class="bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 rounded-2xl p-6 sm:p-8 border border-red-200 dark:border-red-800/50 mb-8">
+        <div class="flex items-center gap-3 mb-2">
+            <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-rose-500 rounded-xl flex items-center justify-center shadow-lg">
+                <i class="fas fa-user-tie text-white text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">{{ title }}</h1>
+                <p class="text-gray-600 dark:text-gray-400 text-sm sm:text-base">Fill in the details below to manage personnel information</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 sm:p-8">
         
         <form method="post" class="space-y-6">
             {% csrf_token %}
             
             {% if form.non_field_errors %}
-            <div class="bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 p-3 rounded-lg">
-                {{ form.non_field_errors }}
+            <div class="bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 p-4 rounded-lg mb-6 border border-red-300 dark:border-red-700">
+                <div class="flex items-start gap-2">
+                    <i class="fas fa-exclamation-triangle mt-0.5"></i>
+                    <div>{{ form.non_field_errors }}</div>
+                </div>
             </div>
             {% endif %}
             
-            <!-- User Selection (only shown for create form) -->
-            {% if not personnel %}
-            <div class="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg mb-4">
-                <p class="text-sm text-blue-800 dark:text-blue-200">
-                    <i class="fas fa-info-circle mr-2"></i>
-                    Select a user with role 'Loading Personnel' to create a personnel profile.
-                    <a href="{% url 'accounts:user_create' %}?role=loading" class="underline font-medium">Create new user</a>
-                </p>
-            </div>
-            {% endif %}
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Left Column -->
-                <div class="space-y-4">
-                    <div>
-                        <label for="{{ form.user.id_for_label }}" class="block text-sm font-medium mb-2">
-                            User Account *
-                        </label>
-                        {{ form.user }}
-                        {% if form.user.errors %}
-                        <p class="text-red-600 text-xs mt-1">{{ form.user.errors.0 }}</p>
-                        {% endif %}
-                        {% if form.user.help_text %}
-                        <p class="text-gray-500 text-xs mt-1">{{ form.user.help_text }}</p>
-                        {% endif %}
+            <!-- All Form Fields in Unified Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- User Account Fields -->
+                <div>
+                    <label for="{{ form.username.id_for_label }}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-user text-red-500 mr-1"></i>Username {% if not personnel %}*{% endif %}
+                    </label>
+                    {% if personnel %}
+                    <div class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white font-semibold">
+                        {{ personnel.user.username }}
                     </div>
-                    
-                    <div>
-                        <label for="{{ form.employee_id.id_for_label }}" class="block text-sm font-medium mb-2">
-                            Employee ID *
-                        </label>
-                        {{ form.employee_id }}
-                        {% if form.employee_id.errors %}
-                        <p class="text-red-600 text-xs mt-1">{{ form.employee_id.errors.0 }}</p>
-                        {% endif %}
-                    </div>
-                    
-                    <div>
-                        <label for="{{ form.commission_rate.id_for_label }}" class="block text-sm font-medium mb-2">
-                            Commission Rate (%) *
-                        </label>
-                        {{ form.commission_rate }}
-                        {% if form.commission_rate.errors %}
-                        <p class="text-red-600 text-xs mt-1">{{ form.commission_rate.errors.0 }}</p>
-                        {% endif %}
-                    </div>
-                    
-                    <div>
-                        <label for="{{ form.phone_extension.id_for_label }}" class="block text-sm font-medium mb-2">
-                            Phone Extension
-                        </label>
-                        {{ form.phone_extension }}
-                        {% if form.phone_extension.errors %}
-                        <p class="text-red-600 text-xs mt-1">{{ form.phone_extension.errors.0 }}</p>
-                        {% endif %}
-                    </div>
+                    {% else %}
+                    <input type="text" id="{{ form.username.id_for_label }}" name="{{ form.username.name }}" value="{{ form.username.value|default:'' }}" class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500" placeholder="e.g., loader_001">
+                    {% endif %}
+                    {% if form.username.errors %}
+                    <p class="text-red-600 dark:text-red-400 text-xs mt-1.5 flex items-center gap-1"><i class="fas fa-exclamation-circle"></i>{{ form.username.errors.0 }}</p>
+                    {% endif %}
                 </div>
                 
-                <!-- Right Column -->
-                <div class="space-y-4">
-                    <div>
-                        <label for="{{ form.emergency_contact.id_for_label }}" class="block text-sm font-medium mb-2">
-                            Emergency Contact
-                        </label>
-                        {{ form.emergency_contact }}
-                        {% if form.emergency_contact.errors %}
-                        <p class="text-red-600 text-xs mt-1">{{ form.emergency_contact.errors.0 }}</p>
-                        {% endif %}
+                <div>
+                    <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-id-card text-red-500 mr-1"></i>First Name
+                    </label>
+                    <input type="text" id="{{ form.first_name.id_for_label }}" name="{{ form.first_name.name }}" value="{{ form.first_name.value|default:'' }}" class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500" placeholder="John">
+                    {% if form.first_name.errors %}
+                    <p class="text-red-600 dark:text-red-400 text-xs mt-1.5 flex items-center gap-1"><i class="fas fa-exclamation-circle"></i>{{ form.first_name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-id-card text-red-500 mr-1"></i>Last Name
+                    </label>
+                    <input type="text" id="{{ form.last_name.id_for_label }}" name="{{ form.last_name.name }}" value="{{ form.last_name.value|default:'' }}" class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500" placeholder="Doe">
+                    {% if form.last_name.errors %}
+                    <p class="text-red-600 dark:text-red-400 text-xs mt-1.5 flex items-center gap-1"><i class="fas fa-exclamation-circle"></i>{{ form.last_name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-envelope text-red-500 mr-1"></i>Email
+                    </label>
+                    <input type="email" id="{{ form.email.id_for_label }}" name="{{ form.email.name }}" value="{{ form.email.value|default:'' }}" class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500" placeholder="john@example.com">
+                    {% if form.email.errors %}
+                    <p class="text-red-600 dark:text-red-400 text-xs mt-1.5 flex items-center gap-1"><i class="fas fa-exclamation-circle"></i>{{ form.email.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.phone.id_for_label }}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-phone text-red-500 mr-1"></i>Phone
+                    </label>
+                    <input type="tel" id="{{ form.phone.id_for_label }}" name="{{ form.phone.name }}" value="{{ form.phone.value|default:'' }}" class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500" placeholder="9XX XXX XXX">
+                    {% if form.phone.errors %}
+                    <p class="text-red-600 dark:text-red-400 text-xs mt-1.5 flex items-center gap-1"><i class="fas fa-exclamation-circle"></i>{{ form.phone.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Password Section -->
+                {% if not personnel %}
+                <div>
+                    <label for="{{ form.password.id_for_label }}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-lock text-red-500 mr-1"></i>Password *
+                    </label>
+                    <input type="password" id="{{ form.password.id_for_label }}" name="{{ form.password.name }}" class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500" placeholder="Secure password">
+                    {% if form.password.errors %}
+                    <p class="text-red-600 dark:text-red-400 text-xs mt-1.5 flex items-center gap-1"><i class="fas fa-exclamation-circle"></i>{{ form.password.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                {% else %}
+                <!-- Edit Mode: Password Change Section with Warning -->
+                <div class="lg:col-span-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                    <div class="flex items-start gap-3 mb-4">
+                        <i class="fas fa-exclamation-triangle text-yellow-600 dark:text-yellow-400 mt-0.5 text-lg"></i>
+                        <div>
+                            <h3 class="font-semibold text-yellow-900 dark:text-yellow-200">Change Password</h3>
+                            <p class="text-xs text-yellow-800 dark:text-yellow-300 mt-1">Leave both fields blank to keep the current password. If you change the password, the user will need to use the new password on their next login.</p>
+                        </div>
                     </div>
                     
-                    <div>
-                        <label for="{{ form.emergency_phone.id_for_label }}" class="block text-sm font-medium mb-2">
-                            Emergency Phone
-                        </label>
-                        {{ form.emergency_phone }}
-                        {% if form.emergency_phone.errors %}
-                        <p class="text-red-600 text-xs mt-1">{{ form.emergency_phone.errors.0 }}</p>
-                        {% endif %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.password.id_for_label }}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                <i class="fas fa-lock text-red-500 mr-1"></i>New Password
+                            </label>
+                            <input type="password" id="{{ form.password.id_for_label }}" name="{{ form.password.name }}" class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500" placeholder="Leave blank to keep current">
+                            {% if form.password.errors %}
+                            <p class="text-red-600 dark:text-red-400 text-xs mt-1.5 flex items-center gap-1"><i class="fas fa-exclamation-circle"></i>{{ form.password.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.password_confirm.id_for_label }}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                <i class="fas fa-lock text-red-500 mr-1"></i>Confirm Password
+                            </label>
+                            <input type="password" id="{{ form.password_confirm.id_for_label }}" name="{{ form.password_confirm.name }}" class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500" placeholder="Confirm new password">
+                            {% if form.password_confirm.errors %}
+                            <p class="text-red-600 dark:text-red-400 text-xs mt-1.5 flex items-center gap-1"><i class="fas fa-exclamation-circle"></i>{{ form.password_confirm.errors.0 }}</p>
+                            {% endif %}
+                        </div>
                     </div>
-                    
-                    <div>
-                        <label for="{{ form.address.id_for_label }}" class="block text-sm font-medium mb-2">
-                            Address
-                        </label>
-                        {{ form.address }}
-                        {% if form.address.errors %}
-                        <p class="text-red-600 text-xs mt-1">{{ form.address.errors.0 }}</p>
-                        {% endif %}
+                </div>
+                {% endif %}
+                
+                <!-- Personnel Fields -->
+                {% if personnel %}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-id-badge text-red-500 mr-1"></i>Employee ID
+                    </label>
+                    <div class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white font-semibold">
+                        {{ personnel.employee_id }}
                     </div>
-                    
-                    <div>
-                        <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium mb-2">
-                            Notes
-                        </label>
-                        {{ form.notes }}
-                        {% if form.notes.errors %}
-                        <p class="text-red-600 text-xs mt-1">{{ form.notes.errors.0 }}</p>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="flex items-center space-x-3">
-                        {{ form.is_active }}
-                        <label for="{{ form.is_active.id_for_label }}" class="text-sm font-medium">
-                            Active
-                        </label>
-                    </div>
+                </div>
+                {% endif %}
+                
+                <div>
+                    <label for="{{ form.commission_rate.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-percent text-red-500 mr-1"></i>Commission Rate (%) *
+                    </label>
+                    <input type="number" id="{{ form.commission_rate.id_for_label }}" name="{{ form.commission_rate.name }}" value="{% if form.commission_rate.value %}{{ form.commission_rate.value }}{% elif form.commission_rate.initial %}{{ form.commission_rate.initial }}{% else %}10.00{% endif %}" step="0.01" class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" placeholder="e.g., 10.00">
+                    {% if form.commission_rate.errors %}
+                    <p class="text-red-600 dark:text-red-400 text-xs mt-1">{{ form.commission_rate.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.emergency_contact.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-user-shield text-red-500 mr-1"></i>Emergency Contact
+                    </label>
+                    <input type="text" id="{{ form.emergency_contact.id_for_label }}" name="{{ form.emergency_contact.name }}" value="{{ form.emergency_contact.value|default:'' }}" class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" placeholder="Contact name">
+                    {% if form.emergency_contact.errors %}
+                    <p class="text-red-600 dark:text-red-400 text-xs mt-1">{{ form.emergency_contact.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.emergency_phone.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-phone text-red-500 mr-1"></i>Emergency Phone
+                    </label>
+                    <input type="tel" id="{{ form.emergency_phone.id_for_label }}" name="{{ form.emergency_phone.name }}" value="{{ form.emergency_phone.value|default:'' }}" class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" placeholder="9XX XXX XXX">
+                    {% if form.emergency_phone.errors %}
+                    <p class="text-red-600 dark:text-red-400 text-xs mt-1">{{ form.emergency_phone.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div class="lg:col-span-2">
+                    <label for="{{ form.address.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-map-marker-alt text-red-500 mr-1"></i>Address
+                    </label>
+                    <textarea id="{{ form.address.id_for_label }}" name="{{ form.address.name }}" rows="2" class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" placeholder="Street address">{{ form.address.value|default:'' }}</textarea>
+                    {% if form.address.errors %}
+                    <p class="text-red-600 dark:text-red-400 text-xs mt-1">{{ form.address.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div class="lg:col-span-2">
+                    <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-sticky-note text-red-500 mr-1"></i>Notes
+                    </label>
+                    <textarea id="{{ form.notes.id_for_label }}" name="{{ form.notes.name }}" rows="2" class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" placeholder="Additional notes">{{ form.notes.value|default:'' }}</textarea>
+                    {% if form.notes.errors %}
+                    <p class="text-red-600 dark:text-red-400 text-xs mt-1">{{ form.notes.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div class="flex items-center space-x-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                    <input type="checkbox" id="{{ form.is_active.id_for_label }}" name="{{ form.is_active.name }}" {% if form.is_active.value %}checked{% endif %} class="w-5 h-5 text-red-600 rounded focus:ring-2 focus:ring-red-500 cursor-pointer">
+                    <label for="{{ form.is_active.id_for_label }}" class="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
+                        <i class="fas fa-check-circle text-red-500 mr-1"></i>Active
+                    </label>
                 </div>
             </div>
             

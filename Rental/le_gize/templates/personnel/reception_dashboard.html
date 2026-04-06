@@ -1,0 +1,211 @@
+{% extends 'layout/base.html' %}
+
+{% block title %} - Reception Dashboard{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header with Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <!-- Total Reception Staff -->
+        <div class="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl p-6 border border-purple-200 dark:border-purple-800/50">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm font-medium">Total Reception Staff</p>
+                    <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ total_reception }}</p>
+                </div>
+                <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-headset text-white text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Staff -->
+        <div class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-6 border border-green-200 dark:border-green-800/50">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm font-medium">Active Staff</p>
+                    <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ active_reception }}</p>
+                </div>
+                <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-check-circle text-white text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inactive Staff -->
+        <div class="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-2xl p-6 border border-red-200 dark:border-red-800/50">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm font-medium">Inactive Staff</p>
+                    <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ inactive_reception }}</p>
+                </div>
+                <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-ban text-white text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Orders Created -->
+        <div class="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-2xl p-6 border border-blue-200 dark:border-blue-800/50">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm font-medium">Orders Created</p>
+                    <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ total_orders }}</p>
+                </div>
+                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-shopping-cart text-white text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
+        <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <i class="fas fa-lightning-bolt text-yellow-500"></i>
+            Quick Actions
+        </h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <a href="{% url 'personnel:reception_create' %}" class="flex items-center gap-3 p-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium">
+                <i class="fas fa-plus text-lg"></i>
+                <span>Add Reception</span>
+            </a>
+            <a href="{% url 'personnel:reception_list' %}" class="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium">
+                <i class="fas fa-list text-lg"></i>
+                <span>View All Staff</span>
+            </a>
+            <a href="{% url 'orders:list' %}" class="flex items-center gap-3 p-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium">
+                <i class="fas fa-shopping-cart text-lg"></i>
+                <span>View Orders</span>
+            </a>
+            <a href="{% url 'personnel:list' %}" class="flex items-center gap-3 p-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium">
+                <i class="fas fa-users text-lg"></i>
+                <span>Loading Staff</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Top Reception Staff by Orders -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
+        <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <i class="fas fa-trophy text-yellow-500"></i>
+            Top Reception Staff by Orders Created
+        </h2>
+        
+        {% if top_reception %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead class="bg-gray-50 dark:bg-gray-700 border-b-2 border-gray-200 dark:border-gray-600">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Rank</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Name</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Employee ID</th>
+                        <th class="px-6 py-3 text-center text-sm font-semibold text-gray-900 dark:text-white">Total Orders</th>
+                        <th class="px-6 py-3 text-center text-sm font-semibold text-gray-900 dark:text-white">Active Orders</th>
+                        <th class="px-6 py-3 text-center text-sm font-semibold text-gray-900 dark:text-white">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                    {% for staff in top_reception %}
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <td class="px-6 py-4 text-sm font-bold text-gray-900 dark:text-white">
+                            {% if forloop.counter == 1 %}
+                            <span class="inline-flex items-center gap-1 px-3 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-full text-xs font-bold">
+                                <i class="fas fa-medal"></i> 1st
+                            </span>
+                            {% elif forloop.counter == 2 %}
+                            <span class="inline-flex items-center gap-1 px-3 py-1 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-full text-xs font-bold">
+                                <i class="fas fa-medal"></i> 2nd
+                            </span>
+                            {% elif forloop.counter == 3 %}
+                            <span class="inline-flex items-center gap-1 px-3 py-1 bg-orange-200 dark:bg-orange-900 text-orange-800 dark:text-orange-200 rounded-full text-xs font-bold">
+                                <i class="fas fa-medal"></i> 3rd
+                            </span>
+                            {% else %}
+                            <span class="text-gray-600 dark:text-gray-400">#{{ forloop.counter }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-sm">
+                            <div class="font-medium text-gray-900 dark:text-white">{{ staff.name }}</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">@{{ staff.user.username }}</div>
+                        </td>
+                        <td class="px-6 py-4 text-sm font-mono text-gray-900 dark:text-white">{{ staff.employee_id }}</td>
+                        <td class="px-6 py-4 text-sm text-center text-gray-900 dark:text-white font-semibold">{{ staff.get_created_orders_count }}</td>
+                        <td class="px-6 py-4 text-sm text-center text-gray-900 dark:text-white">{{ staff.get_active_orders_count }}</td>
+                        <td class="px-6 py-4 text-sm text-center">
+                            {% if staff.is_active %}
+                            <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs font-semibold rounded-full">
+                                <i class="fas fa-check-circle"></i> Active
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center gap-1 px-3 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 text-xs font-semibold rounded-full">
+                                <i class="fas fa-times-circle"></i> Inactive
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+            <i class="fas fa-inbox text-4xl mb-3 opacity-50 block"></i>
+            <p>No reception staff yet</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <i class="fas fa-history text-blue-500"></i>
+            Recent Reception Staff
+        </h2>
+        
+        {% if recent_reception %}
+        <div class="space-y-3">
+            {% for staff in recent_reception %}
+            <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                <div class="flex items-center gap-4 flex-1">
+                    <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+                        <i class="fas fa-user text-white"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-medium text-gray-900 dark:text-white">{{ staff.name }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ staff.employee_id }} • Joined {{ staff.hire_date|date:"M d, Y" }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="text-right">
+                        <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ staff.get_created_orders_count }} orders</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ staff.get_active_orders_count }} active</p>
+                    </div>
+                    <a href="{% url 'personnel:reception_edit' staff.id %}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+            <i class="fas fa-inbox text-4xl mb-3 opacity-50 block"></i>
+            <p>No reception staff yet</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        gsap.from('.bg-gradient-to-br, .bg-white', {
+            opacity: 0,
+            y: 20,
+            duration: 0.5,
+            stagger: 0.1,
+            ease: 'power2.out'
+        });
+    });
+</script>
+{% endblock %}

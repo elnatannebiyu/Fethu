@@ -1,0 +1,149 @@
+{% extends 'layout/base.html' %}
+
+{% block title %} - My Dashboard{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl p-6 sm:p-8 border border-purple-200 dark:border-purple-800/50 mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-0">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
+                        <i class="fas fa-chart-line text-white text-xl"></i>
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">My Dashboard</h1>
+                </div>
+                <p class="text-gray-600 dark:text-gray-400 text-sm sm:text-base">Welcome, {{ user.get_full_name|default:user.username }}</p>
+            </div>
+            <a href="{% url 'orders:order_page' %}" class="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 font-medium text-sm sm:text-base">
+                <i class="fas fa-plus"></i>
+                <span>New Order</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
+        <!-- Total Orders Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300 min-h-fit">
+            <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                    <p class="text-gray-600 dark:text-gray-400 text-sm font-medium">Total Orders Created</p>
+                    <p class="text-4xl font-bold text-gray-900 dark:text-white mt-3">{{ total_orders }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                        <i class="fas fa-info-circle mr-1"></i>Orders you have created
+                    </p>
+                </div>
+                <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-shopping-cart text-white text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Collected Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300 min-h-fit">
+            <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                    <p class="text-gray-600 dark:text-gray-400 text-sm font-medium">Total Collected</p>
+                    <p class="text-4xl font-bold text-green-600 dark:text-green-400 mt-3">{{ total_collected|floatformat:2 }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                        <i class="fas fa-info-circle mr-1"></i>Total money from orders
+                    </p>
+                </div>
+                <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-money-bill-wave text-white text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Average Order Value Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300 min-h-fit">
+            <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                    <p class="text-gray-600 dark:text-gray-400 text-sm font-medium">Average Order Value</p>
+                    <p class="text-4xl font-bold text-purple-600 dark:text-purple-400 mt-3">
+                        {% if total_orders > 0 %}
+                            {{ average_value|floatformat:2 }}
+                        {% else %}
+                            0.00
+                        {% endif %}
+                    </p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                        <i class="fas fa-info-circle mr-1"></i>Average per order
+                    </p>
+                </div>
+                <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-chart-pie text-white text-2xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Orders -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <i class="fas fa-history text-purple-500"></i>
+                Recent Orders
+            </h2>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="min-w-full border-collapse">
+                <thead class="bg-gray-50 dark:bg-gray-700 border-b-2 border-gray-200 dark:border-gray-600">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Order #</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Customer</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Date</th>
+                        <th class="px-6 py-3 text-right text-sm font-semibold text-gray-900 dark:text-white">Amount</th>
+                        <th class="px-6 py-3 text-center text-sm font-semibold text-gray-900 dark:text-white">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                    {% for order in recent_orders %}
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <td class="px-6 py-4 text-sm font-mono text-gray-900 dark:text-white">{{ order.order_number }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ order.customer.full_name|default:"—" }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ order.created_at|date:"Y-m-d H:i" }}</td>
+                        <td class="px-6 py-4 text-sm text-right font-semibold text-green-600 dark:text-green-400">{{ order.final_total|default:order.estimated_total|floatformat:2 }}</td>
+                        <td class="px-6 py-4 text-sm text-center">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold
+                                {% if order.status == 'completed' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                                {% elif order.status == 'active' %}bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200
+                                {% else %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200{% endif %}">
+                                {{ order.get_status_display|default:order.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                            <i class="fas fa-inbox text-4xl mb-3 opacity-50 block"></i>
+                            <p class="text-lg">No orders yet</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Info Section -->
+    <div class="mt-8 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
+        <div class="flex gap-4">
+            <div class="flex-shrink-0">
+                <i class="fas fa-lightbulb text-blue-600 dark:text-blue-400 text-2xl"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">Money Distribution</h3>
+                <p class="text-blue-800 dark:text-blue-200 text-sm">
+                    The total amount collected is distributed to loading personnel based on the orders they fulfill. 
+                    Contact your admin for detailed payment reports and distribution information.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

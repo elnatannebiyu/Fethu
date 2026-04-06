@@ -1,0 +1,78 @@
+<!-- Dashboard Stats Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+    <!-- Total Orders Card -->
+    <div class="group relative bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden hover:scale-105 p-6 sm:p-8">
+        <div class="absolute inset-0 bg-gradient-to-br from-green-500/10 to-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <div class="relative">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">Total Orders</p>
+                    <p class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ total_orders|default:0 }}</p>
+                </div>
+                <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-shopping-cart text-white text-2xl"></i>
+                </div>
+            </div>
+            <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                <p class="text-xs text-gray-500 dark:text-gray-400">All rental orders</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Active Orders Card -->
+    <div class="group relative bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden hover:scale-105 p-6 sm:p-8">
+        <div class="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <div class="relative">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">Active Orders</p>
+                    <p class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ active_orders|default:0 }}</p>
+                </div>
+                <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-play-circle text-white text-2xl"></i>
+                </div>
+            </div>
+            <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                <p class="text-xs text-gray-500 dark:text-gray-400">In progress</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Total Revenue Card -->
+    <div class="group relative bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden hover:scale-105 p-6 sm:p-8">
+        <div class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <div class="relative">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">Total Revenue</p>
+                    <p class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mt-2">${{ total_revenue|default:0|floatformat:2 }}</p>
+                </div>
+                <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-dollar-sign text-white text-2xl"></i>
+                </div>
+            </div>
+            <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                <p class="text-xs text-gray-500 dark:text-gray-400">Total earnings</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Products Card -->
+    <div class="group relative bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden hover:scale-105 p-6 sm:p-8">
+        <div class="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-amber-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <div class="relative">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">Products</p>
+                    <p class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ total_products|default:0 }}</p>
+                </div>
+                <div class="w-14 h-14 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-box text-white text-2xl"></i>
+                </div>
+            </div>
+            <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                <p class="text-xs text-gray-500 dark:text-gray-400">In inventory</p>
+            </div>
+        </div>
+    </div>
+</div>

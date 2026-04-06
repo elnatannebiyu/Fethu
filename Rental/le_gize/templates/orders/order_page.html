@@ -1,559 +1,134 @@
-{% extends 'base.html' %}
+{% extends 'layout/base.html' %}
+{% load static %}
 
 {% block title %} - New Order{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto">
-    <h1 class="text-3xl font-bold mb-8 text-center">Create New Rental Order</h1>
-    
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Left Column - Order Form -->
-        <div class="lg:col-span-2">
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-                <h2 class="text-xl font-semibold mb-6">Order Details</h2>
-                
-                <!-- Customer Information -->
-                <div class="mb-8">
-                    <h3 class="text-lg font-medium mb-4">Customer Information</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium mb-2">Full Name *</label>
-                            <input type="text" id="customerName" class="input-field" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium mb-2">Phone *</label>
-                            <input type="tel" id="customerPhone" class="input-field" required>
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-medium mb-2">Tax ID (Optional)</label>
-                            <input type="text" id="customerTaxId" class="input-field">
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Products Section -->
-                <div class="mb-8">
-                    <h3 class="text-lg font-medium mb-4">Products & Extras</h3>
-                    <div id="productsContainer" class="space-y-4">
-                        <!-- Product rows will be added here dynamically -->
-                    </div>
-                    
-                    <button type="button" id="addProductBtn" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition transform hover:scale-105">
-                        <i class="fas fa-plus mr-2"></i>Add Product
-                    </button>
-                </div>
-                
-                <!-- Rental Period -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Start Date</label>
-                        <input type="date" id="startDate" class="input-field" value="{{ today|date:'Y-m-d' }}">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Expected Return Date</label>
-                        <input type="date" id="returnDate" class="input-field" value="{{ next_week|date:'Y-m-d' }}">
-                    </div>
-                </div>
-                
-                <!-- Prepayment Slider -->
-                <div class="mb-8">
-                    <label class="block text-sm font-medium mb-2">Prepayment Percentage: <span id="prepPercent" class="font-bold text-green-600">50%</span></label>
-                    <input type="range" id="prepaymentRange" min="0" max="100" value="50" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
-                </div>
+    <!-- Back Button -->
+    <div class="mb-6">
+        <a href="{% url 'orders:list' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium">
+            <i class="fas fa-arrow-left"></i>
+            <span>Back to Orders</span>
+        </a>
+    </div>
+
+    <!-- Header -->
+    <div class="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-2xl p-6 sm:p-8 border border-blue-200 dark:border-blue-800/50 mb-8">
+        <div class="flex items-center gap-3 mb-2">
+            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg">
+                <i class="fas fa-plus-circle text-white text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Create New Rental Order</h1>
+                <p class="text-gray-600 dark:text-gray-400 text-sm sm:text-base">Fill in the details below to create a new rental order</p>
             </div>
         </div>
-        
-        <!-- Right Column - Summary & Personnel -->
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2">
+            {% include 'orders/_customer_rental.html' %}
+            {% include 'orders/_products_section.html' %}
+        </div>
         <div class="lg:col-span-1">
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 sticky top-24">
-                <h2 class="text-xl font-semibold mb-6">Order Summary</h2>
-                
-                <!-- Loading Personnel -->
-                <div class="mb-6">
-                    <h3 class="text-lg font-medium mb-4">Loading Personnel</h3>
-                    <div id="personnelContainer" class="space-y-3">
-                        <!-- Personnel rows will be added here -->
-                    </div>
-                    <button type="button" id="addPersonnelBtn" class="mt-2 text-sm text-green-600 hover:text-green-700">
-                        <i class="fas fa-plus mr-1"></i>Add Personnel
-                    </button>
-                    <div id="personnelTotal" class="mt-3 text-sm font-medium text-right">
-                        Total Allocation: <span id="personnelPercentageTotal">0%</span>
-                    </div>
-                </div>
-                
-                <!-- Cost Summary -->
-                <div class="border-t border-gray-200 dark:border-gray-700 pt-6 mb-6">
-                    <div class="space-y-3">
-                        <div class="flex justify-between">
-                            <span>Rental Days:</span>
-                            <span id="rentalDays" class="font-semibold">7</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>Estimated Total:</span>
-                            <span id="estimatedTotal" class="font-bold text-xl">$0.00</span>
-                        </div>
-                        <div class="flex justify-between text-green-600">
-                            <span>Prepayment:</span>
-                            <span id="prepaymentAmount" class="font-semibold">$0.00</span>
-                        </div>
-                        <div class="flex justify-between text-lg font-bold">
-                            <span>Remaining:</span>
-                            <span id="remainingAmount">$0.00</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Action Buttons -->
-                <button type="button" id="initiateOrderBtn" class="btn-primary w-full mb-3">
-                    <i class="fas fa-check mr-2"></i>Initiate Order
-                </button>
-                <button type="button" id="resetOrderBtn" class="btn-secondary w-full">
-                    <i class="fas fa-redo mr-2"></i>Reset
-                </button>
-            </div>
+            {% include 'orders/_summary_panel.html' %}
         </div>
     </div>
 </div>
 
 <!-- Templates -->
 <template id="productRowTemplate">
-    <div class="product-row bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-        <div class="grid grid-cols-1 gap-3">
+    <div class="product-row bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-4 rounded-lg hover:shadow-md transition-shadow">
+        <div class="grid grid-cols-1 gap-4">
             <!-- Product Selection -->
             <div class="grid grid-cols-12 gap-3">
                 <div class="col-span-7">
-                    <select class="product-select input-field w-full">
+                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Product</label>
+                    <select class="product-select w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
                         <option value="">Select Product</option>
                         {% for product in products %}
-                        <option value="{{ product.id }}" data-price="{{ product.price_per_day }}">
+                        <option value="{{ product.id }}" data-price="{{ product.price_per_day }}" data-extras="{{ product.extras_json|escapejs }}">
                             {{ product.name }} - ${{ product.price_per_day }}/day ({{ product.available_stock }} avail)
                         </option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="col-span-3">
-                    <input type="number" class="product-quantity input-field w-full" min="1" value="1" placeholder="Qty">
+                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Quantity</label>
+                    <input type="number" class="product-quantity w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" min="1" value="1" placeholder="Qty">
                 </div>
-                <div class="col-span-2 flex items-center justify-end">
-                    <button type="button" class="remove-product text-red-600 hover:text-red-700">
-                        <i class="fas fa-times text-xl"></i>
+                <div class="col-span-2 flex items-end justify-end">
+                    <button type="button" class="remove-product px-3 py-2 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
+                        <i class="fas fa-trash text-lg"></i>
                     </button>
                 </div>
             </div>
             
-            <!-- Extras Dropdown (hidden initially, shown when product selected) -->
-            <div class="extras-container hidden">
-                <label class="block text-sm font-medium mb-2">Extras for this product:</label>
-                <select class="product-extras input-field w-full" multiple size="3">
-                    <!-- Extras will be populated dynamically -->
-                </select>
-                <p class="text-xs text-gray-500 mt-1">Hold Ctrl to select multiple extras</p>
+            <!-- Extras Dropdown (always visible so receptionist can add extras anytime) -->
+            <div class="extras-container">
+                <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">Extras for this product:</label>
+                <p class="extras-note text-xs text-gray-500 mb-2">Select a product to load extras.</p>
+                <div class="extras-preview text-xs text-gray-500 mb-2" data-extras-preview>Extras data will appear here.</div>
+                <div class="extras-list grid gap-2">
+                    <!-- Extras checkboxes will be populated dynamically -->
+                </div>
             </div>
-            
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Product Start Date</label>
+                    <input type="date" class="product-start-date w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Product Return Date</label>
+                    <input type="date" class="product-return-date w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
+                </div>
+            </div>
+
+            <div class="mt-2 flex items-center justify-between text-[0.75rem] text-gray-500 dark:text-gray-400">
+                <p class="product-days-display font-semibold text-gray-700 dark:text-gray-200">Duration: <strong>0</strong> day(s)</p>
+                <small class="text-blue-600 dark:text-blue-400">Follows rental period unless changed</small>
+            </div>
+
+            <div class="mt-2 text-right text-xs font-semibold text-blue-600">
+                Line total: <span class="product-total-amount">$0.00</span>
+            </div>
+
             <!-- Stock Status -->
-            <div class="product-stock-status text-sm"></div>
+            <div class="product-stock-status text-xs font-medium"></div>
         </div>
     </div>
 </template>
 
 <template id="personnelRowTemplate">
-    <div class="personnel-row flex items-center space-x-3">
-        <select class="personnel-select input-field flex-1">
-            <option value="">Select Personnel</option>
-            {% for p in personnel %}
-            <option value="{{ p.id }}">{{ p.user.get_full_name|default:p.user.username }}</option>
-            {% endfor %}
-        </select>
-        <input type="number" class="personnel-percentage input-field w-20" min="0" max="100" value="0" step="5">
-        <button type="button" class="remove-personnel text-red-600 hover:text-red-700">
-            <i class="fas fa-times"></i>
+    <div class="personnel-row flex items-end gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+        <div class="flex-1">
+            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Personnel</label>
+            <select class="personnel-select w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
+                <option value="">Select Personnel</option>
+                {% for p in personnel %}
+                <option value="{{ p.id }}" data-commission="{{ p.user.commission_rate }}" data-name="{{ p.user.get_full_name|default:p.user.username }}">{{ p.user.get_full_name|default:p.user.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="w-24">
+            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Allocation %</label>
+            <input type="number" class="personnel-percentage w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" min="0" max="100" value="0" step="5">
+        </div>
+        <button type="button" class="remove-personnel px-3 py-2 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
+            <i class="fas fa-trash text-lg"></i>
         </button>
     </div>
 </template>
 
+{% endblock %}
+
 {% block extra_js %}
-<script>
-    // Store current order items
-    let orderItems = [];
-    
-    document.addEventListener('DOMContentLoaded', function() {
-        // Set default dates
-        const today = new Date().toISOString().split('T')[0];
-        const nextWeek = new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0];
-        document.getElementById('startDate').value = today;
-        document.getElementById('returnDate').value = nextWeek;
-        
-        // Add initial rows
-        addProductRow();
-        addPersonnelRow();
-        
-        // Event listeners
-        document.getElementById('addProductBtn').addEventListener('click', addProductRow);
-        document.getElementById('addPersonnelBtn').addEventListener('click', addPersonnelRow);
-        document.getElementById('resetOrderBtn').addEventListener('click', resetOrder);
-        document.getElementById('initiateOrderBtn').addEventListener('click', initiateOrder);
-        
-        document.getElementById('prepaymentRange').addEventListener('input', function(e) {
-            document.getElementById('prepPercent').textContent = e.target.value + '%';
-            calculateTotal();
-        });
-        
-        document.getElementById('startDate').addEventListener('change', updateRentalDays);
-        document.getElementById('returnDate').addEventListener('change', updateRentalDays);
-        
-        // Initial calculations
-        updateRentalDays();
-    });
-    
-    function addProductRow() {
-        const template = document.getElementById('productRowTemplate');
-        const clone = template.content.cloneNode(true);
-        document.getElementById('productsContainer').appendChild(clone);
-        
-        const row = document.querySelector('.product-row:last-child');
-        
-        // Add event listeners
-        const productSelect = row.querySelector('.product-select');
-        const quantityInput = row.querySelector('.product-quantity');
-        const removeBtn = row.querySelector('.remove-product');
-        
-        productSelect.addEventListener('change', function() {
-            loadExtras(row);
-            checkStock(row);
-            calculateTotal();
-        });
-        
-        quantityInput.addEventListener('input', function() {
-            checkStock(row);
-            calculateTotal();
-        });
-        
-        removeBtn.addEventListener('click', function() {
-            removeProductRow(row);
-        });
-        
-        // Animate new row
-        gsap.from(row, {
-            opacity: 0,
-            x: -20,
-            duration: 0.4,
-            ease: 'power2.out'
-        });
-    }
-    
-    function loadExtras(row) {
-        const productSelect = row.querySelector('.product-select');
-        const productId = productSelect.value;
-        const extrasContainer = row.querySelector('.extras-container');
-        const extrasSelect = row.querySelector('.product-extras');
-        
-        if (!productId) {
-            extrasContainer.classList.add('hidden');
-            extrasSelect.innerHTML = '';
-            return;
-        }
-        
-        // Fetch extras for this product
-        fetch(`/orders/api/get-product-extras/?product_id=${productId}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.extras && data.extras.length > 0) {
-                    extrasSelect.innerHTML = data.extras.map(extra => 
-                        `<option value="${extra.id}" data-price="${extra.price_per_day}">
-                            ${extra.name} - $${extra.price_per_day}/day
-                        </option>`
-                    ).join('');
-                    extrasContainer.classList.remove('hidden');
-                    
-                    // Animate extras appearing
-                    gsap.from(extrasContainer, {
-                        opacity: 0,
-                        height: 0,
-                        duration: 0.3,
-                        ease: 'power2.out'
-                    });
-                } else {
-                    extrasContainer.classList.add('hidden');
-                    extrasSelect.innerHTML = '';
-                }
-            });
-    }
-    
-    function checkStock(row) {
-        const productSelect = row.querySelector('.product-select');
-        const quantity = parseInt(row.querySelector('.product-quantity').value) || 0;
-        const stockStatus = row.querySelector('.product-stock-status');
-        
-        if (productSelect.value && quantity > 0) {
-            const selectedOption = productSelect.options[productSelect.selectedIndex];
-            const availableText = selectedOption.text.match(/\((\d+) avail\)/);
-            
-            if (availableText) {
-                const available = parseInt(availableText[1]);
-                
-                if (quantity > available) {
-                    stockStatus.innerHTML = `<span class="text-red-600">⚠️ Short by ${quantity - available} units</span>`;
-                    gsap.to(stockStatus, {
-                        scale: 1.1,
-                        duration: 0.2,
-                        yoyo: true,
-                        repeat: 1
-                    });
-                } else {
-                    stockStatus.innerHTML = `<span class="text-green-600">✓ Available</span>`;
-                }
-            }
-        } else {
-            stockStatus.innerHTML = '';
-        }
-    }
-    
-    function removeProductRow(row) {
-        gsap.to(row, {
-            opacity: 0,
-            x: 20,
-            duration: 0.3,
-            onComplete: () => {
-                row.remove();
-                calculateTotal();
-            }
-        });
-    }
-    
-    function addPersonnelRow() {
-        const template = document.getElementById('personnelRowTemplate');
-        const clone = template.content.cloneNode(true);
-        document.getElementById('personnelContainer').appendChild(clone);
-        
-        const row = document.querySelector('.personnel-row:last-child');
-        
-        row.querySelector('.personnel-percentage').addEventListener('input', updatePersonnelTotal);
-        row.querySelector('.remove-personnel').addEventListener('click', function() {
-            removePersonnelRow(row);
-        });
-        
-        gsap.from(row, {
-            opacity: 0,
-            x: -20,
-            duration: 0.3,
-            ease: 'power2.out'
-        });
-    }
-    
-    function removePersonnelRow(row) {
-        gsap.to(row, {
-            opacity: 0,
-            x: 20,
-            duration: 0.3,
-            onComplete: () => {
-                row.remove();
-                updatePersonnelTotal();
-            }
-        });
-    }
-    
-    function updatePersonnelTotal() {
-        let total = 0;
-        document.querySelectorAll('.personnel-percentage').forEach(input => {
-            total += parseFloat(input.value) || 0;
-        });
-        
-        const totalElement = document.getElementById('personnelPercentageTotal');
-        totalElement.textContent = total + '%';
-        
-        if (total !== 100 && document.querySelectorAll('.personnel-row').length > 0) {
-            totalElement.classList.add('text-red-600');
-        } else {
-            totalElement.classList.remove('text-red-600');
-        }
-    }
-    
-    function updateRentalDays() {
-        const start = new Date(document.getElementById('startDate').value);
-        const end = new Date(document.getElementById('returnDate').value);
-        const days = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
-        
-        document.getElementById('rentalDays').textContent = days;
-        calculateTotal();
-    }
-    
-    function calculateTotal() {
-        const items = [];
-        const days = parseInt(document.getElementById('rentalDays').textContent);
-        
-        document.querySelectorAll('.product-row').forEach(row => {
-            const productSelect = row.querySelector('.product-select');
-            const quantity = parseInt(row.querySelector('.product-quantity').value) || 0;
-            
-            if (productSelect.value && quantity > 0) {
-                const extras = Array.from(row.querySelector('.product-extras')?.selectedOptions || [])
-                    .map(opt => opt.value);
-                
-                items.push({
-                    product_id: productSelect.value,
-                    quantity: quantity,
-                    extras: extras
-                });
-            }
-        });
-        
-        if (items.length === 0) {
-            document.getElementById('estimatedTotal').textContent = '$0.00';
-            document.getElementById('prepaymentAmount').textContent = '$0.00';
-            document.getElementById('remainingAmount').textContent = '$0.00';
-            return;
-        }
-        
-        const prepaymentPercent = document.getElementById('prepaymentRange').value;
-        
-        fetch('/orders/api/calculate-order-total/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify({
-                items: items,
-                days: days,
-                prepayment_percent: prepaymentPercent
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('estimatedTotal').textContent = '$' + data.total.toFixed(2);
-            document.getElementById('prepaymentAmount').textContent = '$' + data.prepayment.toFixed(2);
-            document.getElementById('remainingAmount').textContent = '$' + data.remaining.toFixed(2);
-            
-            // Animate the numbers
-            gsap.to('#estimatedTotal, #prepaymentAmount, #remainingAmount', {
-                scale: 1.1,
-                duration: 0.2,
-                yoyo: true,
-                repeat: 1
-            });
-        });
-    }
-    
-    function initiateOrder() {
-        // Validate customer info
-        const customerName = document.getElementById('customerName').value;
-        const customerPhone = document.getElementById('customerPhone').value;
-        
-        if (!customerName || !customerPhone) {
-            alert('Please fill in customer information');
-            return;
-        }
-        
-        // Validate personnel allocation
-        let personnelTotal = 0;
-        document.querySelectorAll('.personnel-percentage').forEach(input => {
-            personnelTotal += parseFloat(input.value) || 0;
-        });
-        
-        if (personnelTotal !== 100 && document.querySelectorAll('.personnel-row').length > 0) {
-            alert('Personnel allocation must total 100%');
-            return;
-        }
-        
-        // Validate products
-        if (document.querySelectorAll('.product-row').length === 0) {
-            alert('Please add at least one product');
-            return;
-        }
-        
-        // Success animation
-        const btn = document.getElementById('initiateOrderBtn');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
-        btn.disabled = true;
-        
-        // Confetti celebration
-        for (let i = 0; i < 50; i++) {
-            setTimeout(() => createConfetti(), i * 20);
-        }
-        
-        // Simulate order creation (replace with actual API call)
-        setTimeout(() => {
-            btn.innerHTML = '<i class="fas fa-check mr-2"></i>Order Initiated!';
-            btn.classList.remove('bg-green-600', 'hover:bg-green-700');
-            btn.classList.add('bg-blue-600');
-            
-            // Reset after 3 seconds
-            setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.classList.remove('bg-blue-600');
-                btn.classList.add('bg-green-600', 'hover:bg-green-700');
-                btn.disabled = false;
-                resetOrder();
-            }, 3000);
-        }, 1500);
-    }
-    
-    function resetOrder() {
-        gsap.to('.product-row, .personnel-row', {
-            opacity: 0,
-            y: 20,
-            duration: 0.3,
-            stagger: 0.05,
-            onComplete: () => {
-                document.getElementById('productsContainer').innerHTML = '';
-                document.getElementById('personnelContainer').innerHTML = '';
-                document.getElementById('customerName').value = '';
-                document.getElementById('customerPhone').value = '';
-                document.getElementById('customerTaxId').value = '';
-                
-                addProductRow();
-                addPersonnelRow();
-                
-                gsap.from('.product-row, .personnel-row', {
-                    opacity: 0,
-                    y: -20,
-                    duration: 0.4,
-                    stagger: 0.1
-                });
-            }
-        });
-    }
-    
-    function createConfetti() {
-        const colors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
-        const confetti = document.createElement('div');
-        confetti.style.position = 'fixed';
-        confetti.style.width = '10px';
-        confetti.style.height = '10px';
-        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-        confetti.style.borderRadius = '50%';
-        confetti.style.left = Math.random() * window.innerWidth + 'px';
-        confetti.style.top = '-10px';
-        confetti.style.zIndex = '9999';
-        confetti.style.pointerEvents = 'none';
-        
-        document.body.appendChild(confetti);
-        
-        gsap.to(confetti, {
-            y: window.innerHeight + 10,
-            x: (Math.random() - 0.5) * 200,
-            rotation: Math.random() * 360,
-            duration: 2 + Math.random() * 2,
-            ease: 'power1.out',
-            onComplete: () => confetti.remove()
-        });
-    }
-    
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-</script>
+<script src="{% static 'js/orders/order_utils.js' %}"></script>
+<script src="{% static 'js/orders/order_rental_period.js' %}"></script>
+<script src="{% static 'js/orders/order_products_section.js' %}?v=2"></script>
+<script src="{% static 'js/orders/order_personnel_section.js' %}"></script>
+<script src="{% static 'js/orders/order_summary_panel.js' %}"></script>
+<script src="{% static 'js/orders/order_page_init.js' %}"></script>
 {% endblock %}

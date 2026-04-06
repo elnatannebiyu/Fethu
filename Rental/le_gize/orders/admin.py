@@ -42,7 +42,7 @@ class OrderExtraAdmin(admin.ModelAdmin):
 
 @admin.register(PersonnelAllocation)
 class PersonnelAllocationAdmin(admin.ModelAdmin):
-    list_display = ('order', 'personnel', 'percentage', 'salary_earned')
+    list_display = ('order', 'personnel', 'percentage', 'salary_earned', 'commission_paid')
     list_filter = ('personnel', 'order__status')
     search_fields = ('order__order_number', 'personnel__employee_id', 'personnel__user__username')
-    readonly_fields = ('salary_earned',)
+    readonly_fields = ('salary_earned', 'commission_paid')

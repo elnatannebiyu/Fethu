@@ -1,10 +1,17 @@
-{% extends 'base.html' %}
+{% extends 'layout/base.html' %}
 
 {% block title %} - My Profile{% endblock %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto">
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+        <!-- Back to Dashboard Button -->
+        <div class="px-6 py-3 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+            <a href="{% if user.role == 'admin' or user.is_superuser %}{% url 'core:admin_dashboard' %}{% elif user.role == 'loading' %}{% url 'core:loading_dashboard' %}{% elif user.role == 'reception' %}{% url 'personnel:reception_user_dashboard' %}{% else %}{% url 'orders:order_page' %}{% endif %}" class="inline-flex items-center text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+            </a>
+        </div>
+        
         <!-- Profile Header -->
         <div class="bg-gradient-to-r from-green-600 to-green-500 px-6 py-8">
             <div class="flex items-center">
@@ -86,7 +93,7 @@
             </div>
             
             <!-- Action Buttons -->
-            <div class="mt-8 flex space-x-4">
+            <div class="mt-8 flex flex-wrap gap-3">
                 <a href="{% url 'accounts:profile_edit' %}" class="btn-primary">
                     <i class="fas fa-edit mr-2"></i>Edit Profile
                 </a>

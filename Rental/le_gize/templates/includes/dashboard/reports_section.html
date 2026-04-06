@@ -1,0 +1,86 @@
+<!-- Reports & Analytics Section -->
+<div class="bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-2xl p-6 sm:p-8 border border-indigo-200 dark:border-indigo-800/50">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-0 mb-8">
+        <div>
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-chart-line text-white text-xl"></i>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Reports & Analytics</h2>
+            </div>
+            <p class="text-gray-600 dark:text-gray-400 ml-0 sm:ml-15 text-sm sm:text-base">View insights and performance metrics</p>
+        </div>
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+            <a href="{% url 'reports:dashboard' %}" class="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 font-medium text-sm sm:text-base">
+                <i class="fas fa-chart-line"></i>
+                <span>Dashboard</span>
+            </a>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <!-- Orders Report Card -->
+        <a href="{% url 'reports:orders_report' %}" class="group relative bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden hover:scale-105">
+            <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div class="relative p-6 sm:p-8">
+                <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-xl flex items-center justify-center shadow-lg mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-file-invoice text-white text-2xl"></i>
+                </div>
+                <h3 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">Orders Report</h3>
+                <p class="text-gray-600 dark:text-gray-400 mb-4 text-sm sm:text-base">View order history and statistics</p>
+                <div class="flex items-center text-indigo-600 dark:text-indigo-400 font-semibold group-hover:translate-x-2 transition-transform duration-300 text-sm sm:text-base">
+                    <span>View Report</span>
+                    <i class="fas fa-arrow-right ml-2"></i>
+                </div>
+            </div>
+        </a>
+        
+        <!-- Products Report Card -->
+        <a href="{% url 'reports:products_report' %}" class="group relative bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden hover:scale-105">
+            <div class="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-amber-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div class="relative p-6 sm:p-8">
+                <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl flex items-center justify-center shadow-lg mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-box text-white text-2xl"></i>
+                </div>
+                <h3 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">Products Report</h3>
+                <p class="text-gray-600 dark:text-gray-400 mb-4 text-sm sm:text-base">Product usage and popularity</p>
+                <div class="flex items-center text-orange-600 dark:text-orange-400 font-semibold group-hover:translate-x-2 transition-transform duration-300 text-sm sm:text-base">
+                    <span>View Report</span>
+                    <i class="fas fa-arrow-right ml-2"></i>
+                </div>
+            </div>
+        </a>
+        
+        <!-- Personnel Report Card -->
+        <a href="{% url 'reports:personnel_report' %}" class="group relative bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden hover:scale-105">
+            <div class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div class="relative p-6 sm:p-8">
+                <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-users text-white text-2xl"></i>
+                </div>
+                <h3 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">Personnel Report</h3>
+                <p class="text-gray-600 dark:text-gray-400 mb-4 text-sm sm:text-base">Salary and performance metrics</p>
+                <div class="flex items-center text-purple-600 dark:text-purple-400 font-semibold group-hover:translate-x-2 transition-transform duration-300 text-sm sm:text-base">
+                    <span>View Report</span>
+                    <i class="fas fa-arrow-right ml-2"></i>
+                </div>
+            </div>
+        </a>
+        
+        <!-- Financial Report Card -->
+        <a href="{% url 'reports:financial_report' %}" class="group relative bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden hover:scale-105">
+            <div class="absolute inset-0 bg-gradient-to-br from-green-500/10 to-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div class="relative p-6 sm:p-8">
+                <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-dollar-sign text-white text-2xl"></i>
+                </div>
+                <h3 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">Financial Report</h3>
+                <p class="text-gray-600 dark:text-gray-400 mb-4 text-sm sm:text-base">Revenue and profit analysis</p>
+                <div class="flex items-center text-green-600 dark:text-green-400 font-semibold group-hover:translate-x-2 transition-transform duration-300 text-sm sm:text-base">
+                    <span>View Report</span>
+                    <i class="fas fa-arrow-right ml-2"></i>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>

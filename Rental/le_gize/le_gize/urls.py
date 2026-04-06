@@ -12,7 +12,7 @@ def home_redirect(request):
         elif request.user.role == 'loading':
             return redirect('core:loading_dashboard')
         else:
-            return redirect('orders:order_page')
+            return redirect('orders:list')
     return redirect('admin:login')
 
 urlpatterns = [

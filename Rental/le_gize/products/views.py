@@ -43,7 +43,28 @@ def product_list(request):
     elif stock == 'in':
         products = products.filter(available_stock__gt=0)
     
-    paginator = Paginator(products, 20)
+    # Sorting
+    sort_by = request.GET.get('sort', 'name')
+    if sort_by == 'name':
+        products = products.order_by('name')
+    elif sort_by == 'name_reverse':
+        products = products.order_by('-name')
+    elif sort_by == 'newest':
+        products = products.order_by('-created_at')
+    elif sort_by == 'oldest':
+        products = products.order_by('created_at')
+    elif sort_by == 'price_high':
+        products = products.order_by('-price_per_day')
+    elif sort_by == 'price_low':
+        products = products.order_by('price_per_day')
+    elif sort_by == 'stock_high':
+        products = products.order_by('-available_stock')
+    elif sort_by == 'stock_low':
+        products = products.order_by('available_stock')
+    else:
+        products = products.order_by('name')
+    
+    paginator = Paginator(products, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -57,6 +78,7 @@ def product_list(request):
         'category_filter': category_id,
         'status_filter': status,
         'stock_filter': stock,
+        'sort_by': sort_by,
         'total_count': products.count(),
     }
     return render(request, 'products/product_list.html', context)
@@ -66,7 +88,18 @@ def product_list(request):
 def product_detail(request, pk):
     """View product details (admin only)"""
     product = get_object_or_404(Product, pk=pk)
-    return render(request, 'products/product_detail.html', {'product': product})
+    
+    # Paginate extras
+    extras = product.extras.all()
+    paginator = Paginator(extras, 4)
+    extras_page_number = request.GET.get('extras_page')
+    extras_page = paginator.get_page(extras_page_number)
+    
+    context = {
+        'product': product,
+        'extras_page': extras_page,
+    }
+    return render(request, 'products/product_detail.html', context)
 
 @login_required
 @admin_required
@@ -151,9 +184,59 @@ def category_list(request):
     """List all categories (admin only)"""
     categories = Category.objects.annotate(
         product_count=Count('products')
-    ).order_by('name')
+    )
     
-    return render(request, 'products/category_list.html', {'categories': categories})
+    search_query = request.GET.get('search', '')
+    if search_query:
+        categories = apply_search_filters(categories, search_query, [
+            'name', 'description'
+        ])
+    
+    # Sorting
+    sort_by = request.GET.get('sort', 'name')
+    if sort_by == 'name':
+        categories = categories.order_by('name')
+    elif sort_by == 'name_reverse':
+        categories = categories.order_by('-name')
+    elif sort_by == 'newest':
+        categories = categories.order_by('-created_at')
+    elif sort_by == 'oldest':
+        categories = categories.order_by('created_at')
+    elif sort_by == 'products_high':
+        categories = categories.order_by('-product_count')
+    elif sort_by == 'products_low':
+        categories = categories.order_by('product_count')
+    else:
+        categories = categories.order_by('name')
+    
+    paginator = Paginator(categories, 12)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'products/category_list.html', {
+        'page_obj': page_obj, 
+        'categories': page_obj,
+        'search_query': search_query,
+        'sort_by': sort_by,
+    })
+
+@login_required
+@admin_required
+def category_detail(request, pk):
+    """View category details with paginated products (admin only)"""
+    category = get_object_or_404(Category, pk=pk)
+    
+    # Paginate products
+    products = category.products.all().select_related('category').prefetch_related('extras')
+    paginator = Paginator(products, 8)
+    products_page_number = request.GET.get('products_page')
+    products_page = paginator.get_page(products_page_number)
+    
+    context = {
+        'category': category,
+        'products_page': products_page,
+    }
+    return render(request, 'products/category_detail.html', context)
 
 @login_required
 @admin_required
@@ -220,19 +303,51 @@ def category_delete(request, pk):
     
     return render(request, 'products/category_confirm_delete.html', {'category': category})
 
-# ============================================================================
-# Extra Views (Admin Only)
-# ============================================================================
-
 @login_required
 @admin_required
 def extra_list(request):
     """List all extras (admin only)"""
     extras = Extra.objects.annotate(
         product_count=Count('products')
-    ).order_by('name')
+    )
     
-    return render(request, 'products/extra_list.html', {'extras': extras})
+    search_query = request.GET.get('search', '')
+    if search_query:
+        extras = apply_search_filters(extras, search_query, [
+            'name', 'description'
+        ])
+    
+    # Sorting
+    sort_by = request.GET.get('sort', 'name')
+    if sort_by == 'name':
+        extras = extras.order_by('name')
+    elif sort_by == 'name_reverse':
+        extras = extras.order_by('-name')
+    elif sort_by == 'newest':
+        extras = extras.order_by('-created_at')
+    elif sort_by == 'oldest':
+        extras = extras.order_by('created_at')
+    elif sort_by == 'price_high':
+        extras = extras.order_by('-price_per_day')
+    elif sort_by == 'price_low':
+        extras = extras.order_by('price_per_day')
+    elif sort_by == 'product_count_high':
+        extras = extras.order_by('-product_count')
+    elif sort_by == 'product_count_low':
+        extras = extras.order_by('product_count')
+    else:
+        extras = extras.order_by('name')
+    
+    paginator = Paginator(extras, 12)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'products/extra_list.html', {
+        'page_obj': page_obj,
+        'extras': page_obj,
+        'search_query': search_query,
+        'sort_by': sort_by,
+    })
 
 @login_required
 @admin_required

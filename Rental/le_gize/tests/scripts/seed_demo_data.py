@@ -47,7 +47,7 @@ def ensure_superadmin():
 
 
 def ensure_loading_personnel():
-    loader_user, _ = User.objects.get_or_create(
+    loader_user, created = User.objects.get_or_create(
         username="loader1",
         defaults={
             "email": "loader1@example.com",
@@ -55,20 +55,22 @@ def ensure_loading_personnel():
             "is_staff": True,
         },
     )
-    if not loader_user.check_password("loaderpass"):
+    if created or not loader_user.check_password("loaderpass"):
         loader_user.set_password("loaderpass")
         loader_user.save()
-        logger.info("Loader user password reset to default.")
+        logger.info("Loader user 'loader1' created/updated with default password.")
 
-    personnel, _ = LoadingPersonnel.objects.get_or_create(
+    personnel, created = LoadingPersonnel.objects.get_or_create(
         user=loader_user,
         defaults={
-            "employee_id": "LP-001",
             "commission_rate": Decimal("10.00"),
             "is_active": True,
         },
     )
-    logger.info("Loading personnel %s linked to user loader1.", personnel.employee_id)
+    if created:
+        logger.info("Loading personnel %s created and linked to user loader1.", personnel.employee_id)
+    else:
+        logger.info("Loading personnel %s already exists for user loader1.", personnel.employee_id)
     return personnel
 
 
@@ -177,6 +179,7 @@ def seed_order(admin_user, product, extra, customer, personnel):
         defaults={
             "percentage": Decimal("100.00"),
             "salary_earned": Decimal("180.00"),
+            "commission_paid": Decimal("90.00"),
         },
     )
     logger.info("Order %s populated with items, extras, and personnel allocations.", order.order_number)

@@ -6,6 +6,8 @@ from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django.contrib.auth import update_session_auth_hash
 from django.db.models import Q
 from django.http import JsonResponse
+from django.views.decorators.cache import never_cache
+from django.core.paginator import Paginator
 
 from core.mixins import admin_required, any_staff_required
 from core.utils import apply_search_filters, flash_success, flash_error, render_form
@@ -42,6 +44,7 @@ def login_view(request):
     
     return render(request, 'accounts/login.html', {'form': form})
 
+@never_cache
 def logout_view(request):
     """Handle user logout"""
     logout(request)
@@ -54,19 +57,23 @@ def redirect_based_on_role(user):
         return redirect('core:admin_dashboard')
     elif user.role == 'loading':
         return redirect('core:loading_dashboard')
+    elif user.role == 'reception':
+        return redirect('personnel:reception_user_dashboard')
     else:  # reception
-        return redirect('orders:order_page')
+        return redirect('orders:list')
 
 # ============================================================================
 # Profile Management Views (Any logged-in user)
 # ============================================================================
 
 @login_required
+@never_cache
 def profile_view(request):
     """Display user profile"""
     return render(request, 'accounts/profile.html', {'user': request.user})
 
 @login_required
+@never_cache
 def profile_edit_view(request):
     """Edit user profile"""
     if request.method == 'POST':
@@ -81,6 +88,7 @@ def profile_edit_view(request):
     return render(request, 'accounts/profile_edit.html', {'form': form})
 
 @login_required
+@never_cache
 def change_password_view(request):
     """Change user password"""
     if request.method == 'POST':
@@ -122,8 +130,14 @@ def user_list_view(request):
     elif active_filter == 'inactive':
         users = users.filter(is_active=False)
     
+    # Pagination
+    paginator = Paginator(users, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     context = {
-        'users': users,
+        'users': page_obj.object_list,
+        'page_obj': page_obj,
         'search_query': search_query,
         'role_filter': role_filter,
         'active_filter': active_filter,

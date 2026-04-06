@@ -1,0 +1,165 @@
+<!-- Modern Mobile Menu/Sidebar - Only shown for authenticated users -->
+{% if user.is_authenticated %}
+<div class="mobile-menu fixed right-0 top-0 h-screen w-80 bg-white dark:bg-gray-900 shadow-2xl transform translate-x-full transition-transform duration-300 z-50 overflow-y-auto" id="mobile-menu">
+    <!-- Header -->
+    <div class="sticky top-0 bg-gradient-to-r from-green-600 to-green-500 text-white p-6 border-b border-green-700">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+                    <i class="fas fa-user text-lg"></i>
+                </div>
+                <div>
+                    <div class="font-semibold">{{ user.get_full_name|default:user.username }}</div>
+                    <div class="text-sm text-green-100">{{ user.get_role_display }}</div>
+                </div>
+            </div>
+            <button id="mobile-menu-close" class="p-2 hover:bg-white/20 rounded-lg transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Menu Items -->
+    <div class="p-4 space-y-1">
+        {% if user.role == 'admin' or user.is_superuser %}
+            <!-- Main Section -->
+            <div class="mb-6">
+                <h3 class="px-4 py-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Main</h3>
+                <a href="{% url 'core:admin_dashboard' %}" class="mobile-menu-item-modern">
+                    <i class="fas fa-chart-pie w-5"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+            
+            <!-- Products Section -->
+            <div class="mb-6">
+                <h3 class="px-4 py-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Products</h3>
+                <a href="{% url 'products:list' %}" class="mobile-menu-item-modern">
+                    <i class="fas fa-box w-5"></i>
+                    <span>All Products</span>
+                </a>
+                <a href="{% url 'products:category_list' %}" class="mobile-menu-item-modern">
+                    <i class="fas fa-layer-group w-5"></i>
+                    <span>Categories</span>
+                </a>
+                <a href="{% url 'products:extra_list' %}" class="mobile-menu-item-modern">
+                    <i class="fas fa-plus-square w-5"></i>
+                    <span>Extras</span>
+                </a>
+            </div>
+            
+            <!-- Orders Section -->
+            <div class="mb-6">
+                <h3 class="px-4 py-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Orders</h3>
+                <a href="{% url 'orders:list' %}" class="mobile-menu-item-modern">
+                    <i class="fas fa-shopping-cart w-5"></i>
+                    <span>All Orders</span>
+                </a>
+                <a href="{% url 'orders:order_page' %}" class="mobile-menu-item-modern">
+                    <i class="fas fa-plus-circle w-5"></i>
+                    <span>New Order</span>
+                </a>
+                <a href="{% url 'orders:return_page' %}" class="mobile-menu-item-modern">
+                    <i class="fas fa-undo-alt w-5"></i>
+                    <span>Returns</span>
+                </a>
+            </div>
+            
+            <!-- Personnel Section -->
+            <div class="mb-6">
+                <h3 class="px-4 py-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Personnel</h3>
+                <a href="{% url 'personnel:list' %}" class="mobile-menu-item-modern">
+                    <i class="fas fa-users w-5"></i>
+                    <span>All Personnel</span>
+                </a>
+                <a href="{% url 'personnel:reception_list' %}" class="mobile-menu-item-modern">
+                    <i class="fas fa-headset w-5"></i>
+                    <span>Reception Staff</span>
+                </a>
+            </div>
+            
+            <!-- Reports Section -->
+            <div class="mb-6">
+                <h3 class="px-4 py-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Reports</h3>
+                <a href="{% url 'reports:dashboard' %}" class="mobile-menu-item-modern">
+                    <i class="fas fa-chart-bar w-5"></i>
+                    <span>Reports Dashboard</span>
+                </a>
+            </div>
+            
+            <!-- Admin Section -->
+            <div class="mb-6">
+                <h3 class="px-4 py-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Admin</h3>
+                <a href="{% url 'accounts:user_list' %}" class="mobile-menu-item-modern">
+                    <i class="fas fa-user-cog w-5"></i>
+                    <span>Users</span>
+                </a>
+                <a href="{% url 'admin:index' %}" class="mobile-menu-item-modern">
+                    <i class="fas fa-cog w-5"></i>
+                    <span>Admin Panel</span>
+                </a>
+            </div>
+            
+        {% elif user.role == 'loading' %}
+            <div class="mb-6">
+                <h3 class="px-4 py-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Main</h3>
+                <a href="{% url 'core:loading_dashboard' %}" class="mobile-menu-item-modern">
+                    <i class="fas fa-truck w-5"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'orders:assigned_orders' %}" class="mobile-menu-item-modern">
+                    <i class="fas fa-clipboard-list w-5"></i>
+                    <span>My Assignments</span>
+                </a>
+            </div>
+            
+        {% elif user.role == 'reception' %}
+            <div class="mb-6">
+                <h3 class="px-4 py-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Main</h3>
+                <a href="{% url 'orders:order_page' %}" class="mobile-menu-item-modern">
+                    <i class="fas fa-plus-circle w-5"></i>
+                    <span>New Order</span>
+                </a>
+                <a href="{% url 'orders:return_page' %}" class="mobile-menu-item-modern">
+                    <i class="fas fa-undo-alt w-5"></i>
+                    <span>Returns</span>
+                </a>
+                <a href="{% url 'orders:list' %}" class="mobile-menu-item-modern">
+                    <i class="fas fa-history w-5"></i>
+                    <span>Order Log</span>
+                </a>
+            </div>
+        {% endif %}
+        
+        <!-- Account Section -->
+        <div class="border-t border-gray-200 dark:border-gray-800 pt-4">
+            <h3 class="px-4 py-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Account</h3>
+            <a href="{% url 'accounts:profile' %}" class="mobile-menu-item-modern">
+                <i class="fas fa-user w-5"></i>
+                <span>Profile</span>
+            </a>
+            <a href="{% url 'accounts:profile_edit' %}" class="mobile-menu-item-modern">
+                <i class="fas fa-edit w-5"></i>
+                <span>Edit Profile</span>
+            </a>
+            <a href="{% url 'accounts:change_password' %}" class="mobile-menu-item-modern">
+                <i class="fas fa-key w-5"></i>
+                <span>Change Password</span>
+            </a>
+            <a href="{% url 'accounts:logout' %}" class="mobile-menu-item-modern text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
+                <i class="fas fa-sign-out-alt w-5"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Overlay for mobile menu -->
+<div id="mobile-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden transition-opacity duration-300"></div>
+
+<style>
+    .mobile-menu-item-modern {
+        @apply flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200;
+    }
+</style>
+{% endif %}

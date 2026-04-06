@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    {% include 'includes/layout/head.html' %}
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300 min-h-screen">
+    
+    {% include 'includes/layout/theme_toggle.html' %}
+    {% include 'includes/layout/navbar.html' %}
+    {% include 'includes/layout/mobile_menu.html' %}
+    
+    {% if user.is_authenticated %}
+    <!-- Main Content with padding for fixed nav -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-12 page-content">
+    {% else %}
+    <!-- Main Content without padding for login -->
+    <main class="page-content">
+    {% endif %}
+        
+        {% include 'includes/layout/messages.html' %}
+        
+        {% block content %}{% endblock %}
+    </main>
+    
+    {% include 'includes/layout/scripts.html' %}
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

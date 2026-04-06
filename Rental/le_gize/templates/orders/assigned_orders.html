@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'layout/base.html' %}
 
 {% block title %} - My Assignments{% endblock %}
 
@@ -67,7 +67,10 @@
                         <td class="py-3">{{ allocation.order.expected_return_date|date:"Y-m-d" }}</td>
                         <td class="py-3">{{ allocation.percentage }}%</td>
                         <td class="py-3 font-semibold text-green-600">
-                            ${{ allocation.order.estimated_total|floatformat:2 }}
+                            ${{ allocation.expected_commission|floatformat:2 }}
+                            <p class="text-xs text-gray-400">
+                                Paid ${{ allocation.commission_paid|floatformat:2 }} · Remaining ${{ allocation.remaining_commission|floatformat:2 }}
+                            </p>
                         </td>
                         <td class="py-3">
                             <span class="badge-active">Active</span>

@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class CustomUserManager(UserManager):
@@ -19,6 +20,13 @@ class User(AbstractUser):
     
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='reception')
     phone = models.CharField(max_length=15, blank=True)
+    commission_rate = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0.00,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        help_text="Commission rate percentage (0-100). Used for loading personnel."
+    )
 
     objects = CustomUserManager()
     

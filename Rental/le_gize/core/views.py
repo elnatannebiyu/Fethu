@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
+from django.utils import timezone
 from orders.models import Order, PersonnelAllocation  # Added PersonnelAllocation from orders
 from products.models import Product
 from personnel.models import LoadingPersonnel
@@ -15,6 +16,7 @@ def admin_dashboard(request):
         'total_products': Product.objects.count(),
         'low_stock_products': Product.objects.filter(available_stock__lt=5).count(),
         'recent_orders': Order.objects.order_by('-created_at')[:10],
+        'now': timezone.now(),
     }
     return render(request, 'core/admin_dashboard.html', context)
 

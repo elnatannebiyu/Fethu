@@ -1,0 +1,214 @@
+{% extends 'layout/base.html' %}
+
+{% block title %} - {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Back Button -->
+    <div class="mb-6">
+        <a href="{% url 'products:list' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium">
+            <i class="fas fa-arrow-left"></i>
+            <span>Back to Products</span>
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Product Image -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+            <div class="h-96 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+                {% else %}
+                <i class="fas fa-box text-8xl text-gray-400"></i>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Product Info -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            <!-- Status Badge -->
+            <div class="mb-4">
+                {% if product.is_active %}
+                <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-500 text-white text-xs font-semibold rounded-full shadow-lg">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Active</span>
+                </span>
+                {% else %}
+                <span class="inline-flex items-center gap-1 px-3 py-1 bg-red-500 text-white text-xs font-semibold rounded-full shadow-lg">
+                    <i class="fas fa-times-circle"></i>
+                    <span>Inactive</span>
+                </span>
+                {% endif %}
+            </div>
+
+            <!-- Product Name -->
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">{{ product.name }}</h1>
+
+            <!-- Category -->
+            <div class="mb-4">
+                <span class="text-sm text-gray-600 dark:text-gray-400">Category:</span>
+                <p class="text-lg font-semibold text-gray-900 dark:text-white">
+                    {{ product.category.name|default:"Uncategorized" }}
+                </p>
+            </div>
+
+            <!-- Price -->
+            <div class="mb-6 pb-6 border-b border-gray-200 dark:border-gray-700">
+                <span class="text-sm text-gray-600 dark:text-gray-400">Price per Day</span>
+                <p class="text-4xl font-bold text-green-600">${{ product.price_per_day }}</p>
+            </div>
+
+            <!-- Description -->
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Description</h3>
+                <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
+                    {{ product.description }}
+                </p>
+            </div>
+
+            <!-- Stock Status -->
+            <div class="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">Stock Status</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600 dark:text-gray-400">Total Stock:</span>
+                        <span class="font-semibold text-gray-900 dark:text-white">{{ product.total_stock }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600 dark:text-gray-400">Available:</span>
+                        <span class="font-semibold {% if product.is_low_stock %}text-orange-600{% elif product.is_out_of_stock %}text-red-600{% else %}text-green-600{% endif %}">
+                            {{ product.available_stock }}
+                        </span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600 dark:text-gray-400">Reserved:</span>
+                        <span class="font-semibold text-gray-900 dark:text-white">{{ product.reserved_stock }}</span>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex justify-between text-sm mb-2">
+                            <span class="text-gray-600 dark:text-gray-400">Availability</span>
+                            <span class="font-semibold {% if product.is_low_stock %}text-orange-600{% elif product.is_out_of_stock %}text-red-600{% else %}text-green-600{% endif %}">
+                                {% if product.is_out_of_stock %}Out of Stock{% elif product.is_low_stock %}Low Stock{% else %}In Stock{% endif %}
+                            </span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill {% if product.is_low_stock %}bg-orange-600{% elif product.is_out_of_stock %}bg-red-600{% else %}bg-green-600{% endif %}" 
+                                 style="width: {% widthratio product.available_stock product.total_stock 100 %}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <a href="{% url 'products:edit' product.id %}" class="flex-1 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 font-medium">
+                    <i class="fas fa-edit"></i>
+                    <span>Edit</span>
+                </a>
+                <a href="{% url 'products:list' %}" class="flex-1 px-4 py-2 bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 font-medium">
+                    <i class="fas fa-times"></i>
+                    <span>Close</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Extras Section -->
+    <div class="mt-12">
+        <div class="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-2xl p-6 sm:p-8 border border-blue-200 dark:border-blue-800/50 mb-8">
+            <div class="flex items-center gap-3 mb-2">
+                <i class="fas fa-gift text-blue-500 text-xl"></i>
+                <h2 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Available Extras</h2>
+            </div>
+            <p class="text-gray-600 dark:text-gray-400 text-sm">Add these optional services to enhance your rental</p>
+        </div>
+
+        <!-- Extras Grid -->
+        {% if product.extras.all %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% for extra in extras_page %}
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+                <div class="bg-gradient-to-r from-blue-500 to-cyan-500 p-4">
+                    <h3 class="text-lg font-bold text-white">{{ extra.name }}</h3>
+                </div>
+                <div class="p-4">
+                    <p class="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                        {{ extra.description }}
+                    </p>
+                    <div class="grid grid-cols-2 items-center gap-2 pt-4 border-t border-gray-200 dark:border-gray-700 text-sm">
+                        <span class="text-sm font-semibold text-gray-600 dark:text-gray-400">Price per Day</span>
+                        <span class="text-sm font-semibold text-blue-600 dark:text-blue-400 text-right">${{ extra.price_per_day }}</span>
+                        <span class="text-sm font-semibold text-gray-600 dark:text-gray-400">One-time Fee</span>
+                        <span class="text-sm font-semibold text-blue-600 dark:text-blue-400 text-right">${{ extra.one_time_fee|default:"0" }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-8">
+            <i class="fas fa-gift text-4xl text-gray-400 mb-3"></i>
+            <p class="text-gray-600 dark:text-gray-400">No extras available for this product</p>
+        </div>
+        {% endif %}
+
+        <!-- Pagination -->
+        <div class="mt-8 flex flex-col items-center gap-6">
+            <!-- Section Title -->
+            <div class="text-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Available Extras</h3>
+            </div>
+
+            <!-- Page Numbers -->
+            <div class="flex flex-wrap justify-center gap-2">
+                {% if extras_page.has_previous %}
+                <a href="?extras_page=1" class="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="First page">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+                <a href="?extras_page={{ extras_page.previous_page_number }}" class="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="Previous page">
+                    <i class="fas fa-angle-left"></i>
+                </a>
+                {% endif %}
+
+                <!-- Page Number Buttons -->
+                {% for num in extras_page.paginator.page_range %}
+                    {% if extras_page.number == num %}
+                    <span class="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-medium shadow-lg">
+                        {{ num }}
+                    </span>
+                    {% elif num > extras_page.number|add:'-3' and num < extras_page.number|add:'3' %}
+                    <a href="?extras_page={{ num }}" class="px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-medium">
+                        {{ num }}
+                    </a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if extras_page.has_next %}
+                <a href="?extras_page={{ extras_page.next_page_number }}" class="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="Next page">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+                <a href="?extras_page={{ extras_page.paginator.num_pages }}" class="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="Last page">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Page Info -->
+            <div class="text-center text-sm text-gray-600 dark:text-gray-400">
+                <p>Page <span class="font-bold text-gray-900 dark:text-white">{{ extras_page.number }}</span> of <span class="font-bold text-gray-900 dark:text-white">{{ extras_page.paginator.num_pages }}</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        gsap.from('.bg-white, .bg-gray-800', {
+            opacity: 0,
+            y: 30,
+            duration: 0.6,
+            ease: 'power2.out'
+        });
+    });
+</script>
+{% endblock %}

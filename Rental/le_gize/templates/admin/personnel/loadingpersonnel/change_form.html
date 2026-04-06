@@ -1,0 +1,101 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block form_top %}
+{{ block.super }}
+<style>
+  .password-confirm-field {
+    margin-top: 10px;
+  }
+  .password-error {
+    color: #ba2121;
+    margin: 5px 0;
+  }
+</style>
+{% endblock %}
+
+{% block after_field_sets %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Find the password field
+  const passwordField = document.querySelector('input[name="password"]');
+  
+  if (passwordField) {
+    // Check if confirm_password field already exists in the form
+    let confirmField = document.querySelector('input[name="confirm_password"]');
+    
+    if (!confirmField) {
+      // Create the confirm password field
+      const confirmContainer = document.createElement('div');
+      confirmContainer.className = 'form-row password-confirm-field';
+      
+      const confirmLabel = document.createElement('label');
+      confirmLabel.setAttribute('for', 'id_confirm_password');
+      confirmLabel.textContent = 'Confirm Password:';
+      
+      const confirmInput = document.createElement('input');
+      confirmInput.type = 'password';
+      confirmInput.name = 'confirm_password';
+      confirmInput.id = 'id_confirm_password';
+      confirmInput.className = 'vTextField';
+      
+      const helpText = document.createElement('p');
+      helpText.className = 'help';
+      helpText.textContent = 'Confirm new password';
+      
+      confirmContainer.appendChild(confirmLabel);
+      confirmContainer.appendChild(confirmInput);
+      confirmContainer.appendChild(helpText);
+      
+      // Insert after password field's container
+      const passwordRow = passwordField.closest('.form-row');
+      if (passwordRow && passwordRow.parentNode) {
+        passwordRow.parentNode.insertBefore(confirmContainer, passwordRow.nextSibling);
+      }
+      
+      // Update confirmField reference after creation
+      confirmField = document.querySelector('input[name="confirm_password"]');
+    }
+    
+    // Add real-time validation
+    if (confirmField && passwordField) {
+      let errorMsg = document.querySelector('.password-error');
+      
+      function validatePasswords() {
+        // Only validate if password field has a value
+        if (passwordField.value) {
+          // Password is being entered, check if confirm matches
+          if (confirmField.value && passwordField.value !== confirmField.value) {
+            if (!errorMsg) {
+              errorMsg = document.createElement('div');
+              errorMsg.className = 'password-error';
+              confirmField.parentNode.insertBefore(errorMsg, confirmField.nextSibling);
+            }
+            errorMsg.textContent = '⚠ Passwords do not match';
+            confirmField.style.borderColor = '#ba2121';
+          } else {
+            // Passwords match or confirm is empty
+            if (errorMsg) {
+              errorMsg.remove();
+              errorMsg = null;
+            }
+            confirmField.style.borderColor = '';
+          }
+        } else {
+          // Password field is empty, ignore confirm_password field
+          if (errorMsg) {
+            errorMsg.remove();
+            errorMsg = null;
+          }
+          confirmField.style.borderColor = '';
+        }
+      }
+      
+      passwordField.addEventListener('input', validatePasswords);
+      confirmField.addEventListener('input', validatePasswords);
+    }
+  }
+});
+</script>
+{% endblock %}

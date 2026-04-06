@@ -1,36 +1,66 @@
-{% extends 'base.html' %}
+{% extends 'layout/base.html' %}
 
 {% block title %} - Products{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-        <h1 class="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">
-            Products Management
-        </h1>
-        <div class="mt-4 md:mt-0 flex space-x-3">
-            <a href="{% url 'products:category_list' %}" class="btn-secondary">
-                <i class="fas fa-tags mr-2"></i>Categories
-            </a>
-            <a href="{% url 'products:extra_list' %}" class="btn-secondary">
-                <i class="fas fa-puzzle-piece mr-2"></i>Extras
-            </a>
-            <a href="{% url 'products:create' %}" class="btn-primary">
-                <i class="fas fa-plus mr-2"></i>Add Product
-            </a>
+    <div class="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-2xl p-6 sm:p-8 border border-orange-200 dark:border-orange-800/50 mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-0">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl flex items-center justify-center shadow-lg">
+                        <i class="fas fa-boxes text-white text-xl"></i>
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Products Management</h1>
+                </div>
+                <p class="text-gray-600 dark:text-gray-400 text-sm sm:text-base">Manage your complete rental inventory</p>
+            </div>
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+                <a href="{% url 'products:category_list' %}" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 font-medium text-sm sm:text-base">
+                    <i class="fas fa-tags"></i>
+                    <span>Categories</span>
+                </a>
+                <a href="{% url 'products:extra_list' %}" class="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 font-medium text-sm sm:text-base">
+                    <i class="fas fa-gift"></i>
+                    <span>Extras</span>
+                </a>
+                <a href="{% url 'products:create' %}" class="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 font-medium text-sm sm:text-base">
+                    <i class="fas fa-plus"></i>
+                    <span>Add Product</span>
+                </a>
+            </div>
         </div>
     </div>
 
     <!-- Filters -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 mb-6">
-        <form method="get" class="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div class="md:col-span-2">
+    <div class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-lg p-6 sm:p-8 mb-8 border border-gray-200 dark:border-gray-700">
+        <div class="flex items-center gap-3 mb-6">
+            <i class="fas fa-filter text-orange-500 text-xl"></i>
+            <h2 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Filter Products</h2>
+        </div>
+        <form method="get" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+            <div class="sm:col-span-2 lg:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Search</label>
                 <input type="text" name="search" placeholder="Search products..." 
-                       value="{{ search_query }}" class="input-field">
+                       value="{{ search_query }}" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400">
             </div>
             <div>
-                <select name="category" class="input-field">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sort By</label>
+                <select name="sort" class="sort-select w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                    <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name (A-Z)</option>
+                    <option value="name_reverse" {% if sort_by == 'name_reverse' %}selected{% endif %}>Name (Z-A)</option>
+                    <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest First</option>
+                    <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest First</option>
+                    <option value="price_high" {% if sort_by == 'price_high' %}selected{% endif %}>Price (High)</option>
+                    <option value="price_low" {% if sort_by == 'price_low' %}selected{% endif %}>Price (Low)</option>
+                    <option value="stock_high" {% if sort_by == 'stock_high' %}selected{% endif %}>Stock (High)</option>
+                    <option value="stock_low" {% if sort_by == 'stock_low' %}selected{% endif %}>Stock (Low)</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category</label>
+                <select name="category" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                     <option value="">All Categories</option>
                     {% for category in categories %}
                     <option value="{{ category.id }}" {% if category_filter == category.id|stringformat:"s" %}selected{% endif %}>
@@ -40,26 +70,30 @@
                 </select>
             </div>
             <div>
-                <select name="status" class="input-field">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
+                <select name="status" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                     <option value="">All Status</option>
                     <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
                     <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
                 </select>
             </div>
             <div>
-                <select name="stock" class="input-field">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Stock</label>
+                <select name="stock" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                     <option value="">All Stock</option>
                     <option value="in" {% if stock_filter == 'in' %}selected{% endif %}>In Stock</option>
                     <option value="low" {% if stock_filter == 'low' %}selected{% endif %}>Low Stock</option>
                     <option value="out" {% if stock_filter == 'out' %}selected{% endif %}>Out of Stock</option>
                 </select>
             </div>
-            <div class="flex space-x-2">
-                <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-                    <i class="fas fa-search mr-2"></i>Filter
+            <div class="sm:col-span-2 lg:col-span-1 flex flex-col sm:flex-row gap-2">
+                <button type="submit" class="flex-1 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 font-medium">
+                    <i class="fas fa-search"></i>
+                    <span>Filter</span>
                 </button>
-                <a href="{% url 'products:list' %}" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600">
-                    <i class="fas fa-redo mr-2"></i>Reset
+                <a href="{% url 'products:list' %}" class="flex-1 bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700 text-white px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 font-medium">
+                    <i class="fas fa-redo"></i>
+                    <span>Reset</span>
                 </a>
             </div>
         </form>
@@ -68,7 +102,7 @@
     <!-- Products Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {% for product in products %}
-        <div class="product-card bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+        <div class="product-card bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:scale-105 relative">
             <!-- Product Image -->
             <div class="h-48 bg-gray-200 dark:bg-gray-700 relative">
                 {% if product.image %}
@@ -82,9 +116,15 @@
                 <!-- Status Badge -->
                 <div class="absolute top-2 right-2">
                     {% if product.is_active %}
-                    <span class="badge-success">Active</span>
+                    <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-xs font-semibold rounded-full shadow-lg transition-colors">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Active</span>
+                    </span>
                     {% else %}
-                    <span class="badge-danger">Inactive</span>
+                    <span class="inline-flex items-center gap-1 px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-xs font-semibold rounded-full shadow-lg transition-colors">
+                        <i class="fas fa-times-circle"></i>
+                        <span>Inactive</span>
+                    </span>
                     {% endif %}
                 </div>
             </div>
@@ -139,18 +179,18 @@
                 
                 <!-- Actions -->
                 <div class="flex justify-end space-x-2 pt-3 border-t border-gray-200 dark:border-gray-700">
-                    <a href="{% url 'products:detail' product.id %}" class="text-blue-600 hover:text-blue-800 p-2" title="View">
+                    <a href="{% url 'products:detail' product.id %}" class="text-blue-600 hover:text-blue-800 p-2 transition-colors" title="View">
                         <i class="fas fa-eye"></i>
                     </a>
-                    <a href="{% url 'products:edit' product.id %}" class="text-green-600 hover:text-green-800 p-2" title="Edit">
+                    <a href="{% url 'products:edit' product.id %}" class="text-green-600 hover:text-green-800 p-2 transition-colors" title="Edit">
                         <i class="fas fa-edit"></i>
                     </a>
-                    <a href="{% url 'products:toggle_active' product.id %}" class="text-yellow-600 hover:text-yellow-800 p-2" title="Toggle Active">
+                    <button type="button" onclick="toggleProductStatus({{ product.id }}, '{% url 'products:toggle_active' product.id %}')" class="text-yellow-600 hover:text-yellow-800 p-2 transition-colors" title="Toggle Active">
                         <i class="fas fa-power-off"></i>
-                    </a>
-                    <a href="{% url 'products:delete' product.id %}" class="text-red-600 hover:text-red-800 p-2" title="Delete">
+                    </button>
+                    <button type="button" onclick="openDeleteModal({{ product.id }}, '{{ product.name }}')" class="text-red-600 hover:text-red-800 p-2 transition-colors" title="Delete">
                         <i class="fas fa-trash"></i>
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>
@@ -166,49 +206,208 @@
     </div>
 
     <!-- Pagination -->
-    {% if page_obj.has_other_pages %}
-    <div class="mt-8 flex justify-center">
-        <div class="flex space-x-2">
+    <div class="mt-12 flex flex-col items-center gap-6">
+        <!-- Section Title -->
+        <div class="text-center mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Products</h3>
+        </div>
+
+        <!-- Page Numbers -->
+        <div class="flex flex-wrap justify-center gap-2">
             {% if page_obj.has_previous %}
             <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if stock_filter %}&stock={{ stock_filter }}{% endif %}" 
-               class="px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700">
+               class="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="First page">
                 <i class="fas fa-angle-double-left"></i>
             </a>
             <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if stock_filter %}&stock={{ stock_filter }}{% endif %}" 
-               class="px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700">
+               class="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="Previous page">
                 <i class="fas fa-angle-left"></i>
             </a>
             {% endif %}
 
-            <span class="px-4 py-2 bg-green-600 text-white rounded-lg">
-                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-            </span>
+            <!-- Page Number Buttons -->
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <span class="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium shadow-lg">
+                    {{ num }}
+                </span>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if stock_filter %}&stock={{ stock_filter }}{% endif %}" 
+                   class="px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-medium">
+                    {{ num }}
+                </a>
+                {% endif %}
+            {% endfor %}
 
             {% if page_obj.has_next %}
             <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if stock_filter %}&stock={{ stock_filter }}{% endif %}" 
-               class="px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700">
+               class="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="Next page">
                 <i class="fas fa-angle-right"></i>
             </a>
             <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if stock_filter %}&stock={{ stock_filter }}{% endif %}" 
-               class="px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700">
+               class="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="Last page">
                 <i class="fas fa-angle-double-right"></i>
             </a>
             {% endif %}
         </div>
-    </div>
-    {% endif %}
-</div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Animate product cards
-        gsap.from('.product-card', {
-            opacity: 0,
-            y: 30,
-            duration: 0.6,
-            stagger: 0.1,
-            ease: 'power2.out'
+        <!-- Page Info -->
+        <div class="text-center text-sm text-gray-600 dark:text-gray-400">
+            <p>Page <span class="font-bold text-gray-900 dark:text-white">{{ page_obj.number }}</span> of <span class="font-bold text-gray-900 dark:text-white">{{ page_obj.paginator.num_pages }}</span></p>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 pt-20">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 max-w-sm w-full mx-4 transform transition-all duration-300 scale-95 opacity-0" id="deleteModalContent">
+            <div class="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 dark:bg-red-900 rounded-full mb-4">
+                <i class="fas fa-exclamation-triangle text-red-600 dark:text-red-400 text-xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white text-center mb-2">Delete Product</h3>
+            <p class="text-gray-600 dark:text-gray-400 text-center mb-6">
+                Are you sure you want to delete <span id="deleteProductName" class="font-semibold"></span>? This action cannot be undone.
+            </p>
+            <div class="flex gap-3">
+                <button type="button" onclick="closeDeleteModal()" class="flex-1 px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-900 dark:text-white rounded-lg font-medium hover:bg-gray-400 dark:hover:bg-gray-700 transition-colors">
+                    Cancel
+                </button>
+                <button type="button" onclick="confirmDelete()" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let deleteProductId = null;
+        let deleteProductUrl = null;
+
+        // Auto-submit form when sort changes
+        document.querySelector('.sort-select')?.addEventListener('change', function() {
+            this.closest('form').submit();
         });
-    });
-</script>
+
+        function openDeleteModal(productId, productName) {
+            deleteProductId = productId;
+            document.getElementById('deleteProductName').textContent = productName;
+            const modal = document.getElementById('deleteModal');
+            const content = document.getElementById('deleteModalContent');
+            modal.classList.remove('hidden');
+            
+            // Trigger animation
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeDeleteModal() {
+            const modal = document.getElementById('deleteModal');
+            const content = document.getElementById('deleteModalContent');
+            content.classList.add('scale-95', 'opacity-0');
+            content.classList.remove('scale-100', 'opacity-100');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function confirmDelete() {
+            if (deleteProductId) {
+                const deleteUrl = `/products/${deleteProductId}/delete/`;
+                
+                // Animate the card out
+                const card = document.querySelector(`[data-product-id="${deleteProductId}"]`);
+                if (card) {
+                    gsap.to(card, {
+                        opacity: 0,
+                        y: -30,
+                        duration: 0.4,
+                        ease: 'power2.in',
+                        onComplete: function() {
+                            window.location.href = deleteUrl;
+                        }
+                    });
+                } else {
+                    window.location.href = deleteUrl;
+                }
+            }
+        }
+
+        function toggleProductStatus(productId, toggleUrl) {
+            const card = document.querySelector(`[data-product-id="${productId}"]`);
+            if (card) {
+                // Pulse animation
+                gsap.to(card, {
+                    scale: 1.05,
+                    duration: 0.2,
+                    yoyo: true,
+                    repeat: 1,
+                    ease: 'power2.inOut',
+                    onComplete: function() {
+                        // Flash the badge
+                        const badge = card.querySelector('.absolute.top-2');
+                        if (badge) {
+                            gsap.to(badge, {
+                                opacity: 0.5,
+                                duration: 0.15,
+                                yoyo: true,
+                                repeat: 2,
+                                ease: 'power2.inOut',
+                                onComplete: function() {
+                                    window.location.href = toggleUrl;
+                                }
+                            });
+                        } else {
+                            window.location.href = toggleUrl;
+                        }
+                    }
+                });
+            } else {
+                window.location.href = toggleUrl;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate product cards
+            gsap.fromTo('.product-card', 
+                {
+                    opacity: 0,
+                    y: 30
+                },
+                {
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.6,
+                    stagger: 0.1,
+                    ease: 'power2.out'
+                }
+            );
+
+            // Add data-product-id to each card for reference
+            document.querySelectorAll('.product-card').forEach((card, index) => {
+                const deleteBtn = card.querySelector('button[onclick*="openDeleteModal"]');
+                if (deleteBtn) {
+                    const match = deleteBtn.getAttribute('onclick').match(/openDeleteModal\((\d+)/);
+                    if (match) {
+                        card.setAttribute('data-product-id', match[1]);
+                    }
+                }
+            });
+
+            // Close modal on escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeDeleteModal();
+                }
+            });
+
+            // Close modal on background click
+            document.getElementById('deleteModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeDeleteModal();
+                }
+            });
+        });
+    </script>
 {% endblock %}

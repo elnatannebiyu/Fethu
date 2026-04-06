@@ -17,11 +17,13 @@ from core.mixins import reception_required, loading_personnel_required, admin_re
 from core.utils import apply_search_filters
 from products.models import Product, Extra
 from personnel.models import LoadingPersonnel
-from orders.models import PersonnelAllocation, Order, OrderItem, OrderExtra, Customer
+from orders.models import PersonnelAllocation, Order, OrderItem, OrderExtra, Customer, COMMISSION_RATE
+from orders.utils import calculate_order_totals, quantize_currency
 
-# ============================================================================
-# CONSTANTS
-# ============================================================================
+logger = logging.getLogger(__name__)
+COMMISSION_RATE = Decimal('0.10')
+CUSTOM_LATE_PENALTY_PERCENT = Decimal('12.5')
+CURRENCY_QUANTIZE = Decimal('0.01')
 
 ORDER_STATUS_CHOICES = [
     ('active', 'Active'),
@@ -29,28 +31,82 @@ ORDER_STATUS_CHOICES = [
     ('cancelled', 'Cancelled'),
 ]
 
+
+def calculate_order_totals(items, default_days):
+    """Sum up product + extras totals over the requested rental days."""
+    default_days = max(1, int(default_days))
+
+    total = Decimal('0.00')
+    details = []
+    for item in items:
+        product_id = item.get('product_id')
+        if not product_id:
+            raise ValueError('Product ID is required for each item.')
+
+        product = Product.objects.get(id=product_id)
+        quantity = Decimal(str(item.get('quantity', 0)))
+        if quantity <= 0:
+            raise ValueError(f'Quantity must be greater than zero for {product.name}.')
+
+        item_days = item.get('days')
+        try:
+            item_days = max(1, int(item_days))
+        except (TypeError, ValueError):
+            item_days = default_days
+
+        days_decimal = Decimal(item_days)
+        base_total = product.price_per_day * quantity * days_decimal
+        extras_details = []
+        extras_total = Decimal('0.00')
+        extras_one_time_total = Decimal('0.00')
+
+        for extra_id in item.get('extras', []):
+            extra = Extra.objects.get(id=extra_id)
+            extra_amount = quantize_currency(extra.price_per_day * quantity * days_decimal)
+            extras_total += extra_amount
+            one_time_amount = quantize_currency(extra.one_time_fee * quantity)
+            extras_one_time_total += one_time_amount
+            extras_details.append({
+                'id': extra.id,
+                'name': extra.name,
+                'price_per_day': float(extra.price_per_day),
+                'subtotal': float(extra_amount),
+                'one_time_fee': float(extra.one_time_fee),
+                'one_time_total': float(one_time_amount),
+                'days': item_days
+            })
+
+        subtotal = quantize_currency(base_total + extras_total + extras_one_time_total)
+        total += subtotal
+
+        details.append({
+            'product_id': product.id,
+            'name': product.name,
+            'quantity': int(quantity),
+            'days': item_days,
+            'price_per_day': float(product.price_per_day),
+            'start_date': item.get('start_date'),
+            'expected_return_date': item.get('expected_return_date'),
+            'subtotal': float(subtotal),
+            'extras': extras_details,
+            'extras_one_time_total': float(extras_one_time_total),
+            'extras_total': float(extras_total)
+        })
+
+    return quantize_currency(total), details
+
 # ============================================================================
 # HELPER FUNCTIONS
 # ============================================================================
 
 def get_role_based_orders(user):
     if user.role == 'loading':
-        return Order.objects.filter(personnel_allocations__personnel__user=user)
+        return Order.objects.filter(personnelallocation_set__personnel__user=user)
     elif user.role == 'reception':
         return Order.objects.filter(created_by=user)
     elif user.role == 'admin' or user.is_superuser:
         return Order.objects.all()
     return Order.objects.none()
-
-def validate_personnel_allocations(personnel_data):
-    """
-    Validate personnel allocations sum to 100%
-    """
-    if not personnel_data:
-        return True, 0
-    
-    total = sum(float(p.get('percentage', 0)) for p in personnel_data)
-    return abs(total - 100.0) < 0.01, total
 
 def get_allocation_for_request(request, allocation_id):
     """Fetch allocation and ensure the current user can act on it."""
@@ -73,44 +129,53 @@ def validate_allocation_request(request, allocation_id):
         return None, "This order is no longer active."
     return allocation, None
 
-# ============================================================================
-# ORDER PAGE VIEWS
-# ============================================================================
-
 @login_required
 @reception_required
 def order_page(request):
-    """
-    Main order creation page (reception and admin only)
-    """
+    """Main order creation page (reception and admin only)"""
     today = timezone.now().date()
     next_week = today + timedelta(days=7)
-    
+    default_rental_days = (next_week - today).days
+
+    products = list(Product.objects.filter(
+        is_active=True,
+        available_stock__gt=0
+    ).select_related('category').prefetch_related('extras'))
+    for product in products:
+        product.extras_json = json.dumps([
+            {
+                'id': extra.id,
+                'name': extra.name,
+                'price_per_day': float(extra.price_per_day),
+                'one_time_fee': float(extra.one_time_fee),
+            }
+            for extra in product.extras.all()
+        ])
+
     context = {
-        'products': Product.objects.filter(
-            is_active=True, 
-            available_stock__gt=0
-        ).select_related('category').prefetch_related('extras'),
+        'products': products,
         'personnel': LoadingPersonnel.objects.filter(
             is_active=True
         ).select_related('user'),
         'today': today,
         'next_week': next_week,
+        'default_rental_days': default_rental_days,
         'status_choices': ORDER_STATUS_CHOICES,
     }
     return render(request, 'orders/order_page.html', context)
-
 
 @login_required
 def order_list(request):
     """
     List all orders with filters (role-based access)
     """
+    from django.core.paginator import Paginator
+    
     orders = get_role_based_orders(request.user).select_related(
         'customer', 'created_by'
     ).prefetch_related(
-        'items', 'personnel_allocations__personnel__user'
-    ).order_by('-created_at')
+        'items', 'personnelallocation_set__personnel__user'
+    )
     
     # Apply filters
     status = request.GET.get('status')
@@ -130,16 +195,40 @@ def order_list(request):
     if date_to:
         orders = orders.filter(created_at__date__lte=date_to)
     
+    # Sorting
+    sort_by = request.GET.get('sort', 'newest')
+    if sort_by == 'order_number':
+        orders = orders.order_by('order_number')
+    elif sort_by == 'order_number_reverse':
+        orders = orders.order_by('-order_number')
+    elif sort_by == 'newest':
+        orders = orders.order_by('-created_at')
+    elif sort_by == 'oldest':
+        orders = orders.order_by('created_at')
+    elif sort_by == 'total_high':
+        orders = orders.order_by('-estimated_total')
+    elif sort_by == 'total_low':
+        orders = orders.order_by('estimated_total')
+    else:
+        orders = orders.order_by('-created_at')
+    
     # Annotate with item count
     orders = orders.annotate(item_count=Count('items'))
     
+    # Pagination
+    paginator = Paginator(orders, 12)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     context = {
-        'orders': orders,
+        'page_obj': page_obj,
+        'orders': page_obj,
         'status_choices': ORDER_STATUS_CHOICES,
         'current_status': status,
         'search_query': search or '',
         'date_from': date_from or '',
         'date_to': date_to or '',
+        'sort_by': sort_by,
         'is_loading': request.user.role == 'loading',
     }
     return render(request, 'orders/order_list.html', context)
@@ -156,14 +245,14 @@ def order_detail(request, order_id):
         ).prefetch_related(
             'items__product',
             'items__extras__extra',
-            'personnel_allocations__personnel__user'
+            'personnelallocation_set__personnel__user'
         ),
         id=order_id
     )
     
     # Permission check
     if request.user.role == 'loading':
-        if not order.personnel_allocations.filter(
+        if not order.personnelallocation_set.filter(
             personnel__user=request.user
         ).exists():
             messages.error(request, "You don't have permission to view this order.")
@@ -313,7 +402,8 @@ def get_product_extras(request):
         extras = [{
             'id': e.id,
             'name': e.name,
-            'price_per_day': float(e.price_per_day)
+            'price_per_day': float(e.price_per_day),
+            'one_time_fee': float(e.one_time_fee)
         } for e in product.extras.all()]
         
         return JsonResponse({'extras': extras})
@@ -368,17 +458,77 @@ def calculate_order_total(request):
     try:
         data = json.loads(request.body)
         items = data.get('items', [])
-        days = int(data.get('days', 1))
-        prepayment_percent = float(data.get('prepayment_percent', 50))
-        
+        days = max(1, int(data.get('days', 1)))
+        start_date_str = data.get('start_date')
+        return_date_str = data.get('expected_return_date')
+        if start_date_str and return_date_str:
+            try:
+                start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+                return_date = datetime.strptime(return_date_str, '%Y-%m-%d').date()
+                parsed_days = max(1, (return_date - start_date).days)
+                days = parsed_days
+            except ValueError:
+                logger.warning("Invalid date format received for rental total calculation")
+        prepayment_percent = Decimal(str(data.get('prepayment_percent', 50)))
+        prepayment_percent = max(Decimal('0'), min(prepayment_percent, Decimal('100')))
+        late_days = max(0, int(data.get('late_days', 0)))
+        penalty_percent = Decimal(str(data.get('penalty_percent', CUSTOM_LATE_PENALTY_PERCENT)))
+        penalty_percent = max(Decimal('0'), min(penalty_percent, Decimal('100')))
+
         total, details = calculate_order_totals(items, days)
-        prepayment = total * prepayment_percent / 100
-        
+        prepayment_amount_raw = data.get('prepayment_amount')
+        prepayment_amount = None
+        if prepayment_amount_raw not in [None, '']:
+            prepayment_amount = Decimal(str(prepayment_amount_raw))
+        if prepayment_amount is None or prepayment_amount <= 0:
+            prepayment_amount = quantize_currency(total * prepayment_percent / Decimal('100'))
+        else:
+            if prepayment_amount > total:
+                prepayment_amount = total
+            prepayment_amount = quantize_currency(prepayment_amount)
+        prepayment = prepayment_amount
+
+        collateral_amount_raw = data.get('collateral_amount')
+        collateral_amount = Decimal('0.00')
+        if collateral_amount_raw not in [None, '']:
+            try:
+                collateral_amount = Decimal(str(collateral_amount_raw))
+            except (ValueError, TypeError):
+                collateral_amount = Decimal('0.00')
+        collateral_amount = max(Decimal('0.00'), collateral_amount)
+        penalty_amount = Decimal('0.00')
+        if late_days > 0 and total > 0:
+            penalty_amount = quantize_currency(
+                total * penalty_percent / Decimal('100') * Decimal(late_days)
+            )
+        total_with_penalty = quantize_currency(total + penalty_amount)
+        if total_with_penalty > 0:
+            prepayment_percent = min(Decimal('100'), (prepayment / total_with_penalty) * Decimal('100'))
+        else:
+            prepayment_percent = Decimal('0')
+        remaining_amount = quantize_currency(total_with_penalty - prepayment)
+        client_payment = quantize_currency(prepayment + remaining_amount + collateral_amount)
+        collateral_percent = Decimal('0.00')
+        if total_with_penalty > 0:
+            collateral_percent = min(Decimal('100'), (collateral_amount / total_with_penalty) * Decimal('100'))
+
+        def _to_float(value):
+            return float(round(value, 2))
+
         return JsonResponse({
             'success': True,
-            'total': round(total, 2),
-            'prepayment': round(prepayment, 2),
-            'remaining': round(total - prepayment, 2),
+            'total': _to_float(total_with_penalty),
+            'subtotal': _to_float(total),
+            'prepayment': _to_float(prepayment),
+            'remaining': _to_float(remaining_amount),
+            'prepayment_percent': float(prepayment_percent),
+            'rental_days': days,
+            'penalty_amount': _to_float(penalty_amount),
+            'penalty_days': late_days,
+            'penalty_percent': float(penalty_percent),
+            'collateral_amount': _to_float(collateral_amount),
+            'collateral_percent': float(collateral_percent),
+            'client_payment': _to_float(client_payment),
             'details': details
         })
         
@@ -396,120 +546,24 @@ def calculate_order_total(request):
 @reception_required
 @transaction.atomic
 @require_http_methods(["POST"])
+@csrf_exempt
+@login_required
+@reception_required
+@require_http_methods(["POST"])
 def initiate_order_api(request):
-    """
-    API endpoint to create a new order
-    """
     try:
         data = json.loads(request.body)
-        
-        # Validate required fields
-        required_fields = ['customer', 'items', 'start_date', 'expected_return_date']
-        for field in required_fields:
-            if field not in data:
-                return JsonResponse({
-                    'success': False,
-                    'error': f'Missing required field: {field}'
-                }, status=400)
-        
-        # Create or get customer
-        customer_data = data.get('customer', {})
-        if not customer_data.get('phone') or not customer_data.get('full_name'):
-            return JsonResponse({
-                'success': False,
-                'error': 'Customer phone and name are required'
-            }, status=400)
-        
-        customer, created = Customer.objects.get_or_create(
-            phone=customer_data['phone'],
-            defaults={
-                'full_name': customer_data['full_name'],
-                'tax_id': customer_data.get('tax_id', ''),
-            }
-        )
-        
-        # Calculate days
-        start_date = datetime.strptime(data['start_date'], '%Y-%m-%d').date()
-        return_date = datetime.strptime(data['expected_return_date'], '%Y-%m-%d').date()
-        days = max(1, (return_date - start_date).days)
-        
-        # Calculate totals
-        total, _ = calculate_order_totals(data.get('items', []), days)
-        prepayment_percent = float(data.get('prepayment_percentage', 50))
-        prepayment = total * prepayment_percent / 100
-        
-        # Create order
-        order = Order.objects.create(
-            order_number=f"ORD-{timezone.now().strftime('%Y%m%d%H%M%S')}",
-            customer=customer,
-            created_by=request.user,
-            prepayment_percentage=prepayment_percent,
-            estimated_total=total,
-            prepayment_amount=prepayment,
-            start_date=start_date,
-            expected_return_date=return_date,
-            status='active'
-        )
-        
-        # Create order items and reserve stock
-        for item_data in data.get('items', []):
-            product = Product.objects.get(id=item_data['product_id'])
-            quantity = int(item_data['quantity'])
-            
-            # Reserve stock
-            if not product.reserve_stock(quantity):
-                raise Exception(f"Not enough stock for {product.name}")
-            
-            # Create order item
-            order_item = OrderItem.objects.create(
-                order=order,
-                product=product,
-                quantity=quantity,
-                price_per_day=product.price_per_day,
-                days_rented=days,
-                subtotal=float(product.price_per_day) * quantity * days
-            )
-            
-            # Add extras
-            for extra_id in item_data.get('extras', []):
-                extra = Extra.objects.get(id=extra_id)
-                OrderExtra.objects.create(
-                    order_item=order_item,
-                    extra=extra,
-                    quantity=quantity,
-                    price_per_day=extra.price_per_day,
-                    subtotal=float(extra.price_per_day) * quantity * days
-                )
-        
-        # Create personnel allocations
-        personnel_data = data.get('personnel_allocations', [])
-        is_valid, total_percentage = validate_personnel_allocations(personnel_data)
-        
-        if personnel_data and not is_valid:
-            raise Exception(f"Personnel allocation must total 100% (currently {total_percentage}%)")
-        
-        for p_data in personnel_data:
-            personnel = LoadingPersonnel.objects.get(id=p_data['personnel_id'])
-            PersonnelAllocation.objects.create(
-                order=order,
-                personnel=personnel,
-                percentage=float(p_data['percentage']),
-                salary_earned=0
-            )
-        
-        logger.info(f"Order {order.order_number} created by {request.user.username}")
-        
+        result = OrderInitializationService.create_order(request.user, data)
+        logger.info(f"Order {result.order.order_number} created by {request.user.username}")
         return JsonResponse({
             'success': True,
-            'order_id': order.id,
-            'order_number': order.order_number,
+            'order_id': result.order.id,
+            'order_number': result.order.order_number,
             'message': 'Order created successfully!'
         })
-        
-    except Product.DoesNotExist as e:
-        return JsonResponse({'success': False, 'error': f'Product not found'}, status=400)
-    except LoadingPersonnel.DoesNotExist as e:
-        return JsonResponse({'success': False, 'error': f'Personnel not found'}, status=400)
+    except OrderInitializationError as exc:
+        logger.error(f"Order initialization failed: {exc}")
+        return JsonResponse({'success': False, 'error': str(exc)}, status=400)
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
     except Exception as e:
@@ -668,23 +722,41 @@ def finalize_return_api(request):
             
             for extra in item.extras.all():
                 extra.subtotal = extra.price_per_day * extra.quantity * days_rented
-                extra.save()
-                final_total += extra.subtotal
-        
+            extra.save()
+            final_total += extra.subtotal
+       
+        late_days = max(0, (actual_return_date - order.expected_return_date).days)
+        penalty_amount = Decimal('0.00')
+        if late_days > 0:
+            penalty_amount = quantize_currency(
+                final_total * CUSTOM_LATE_PENALTY_PERCENT / Decimal('100') * Decimal(late_days)
+            )
+            final_total += penalty_amount
+
         # Calculate remaining amount
         remaining_amount = final_total - order.prepayment_amount
-        
+       
         # Update order
         order.actual_return_date = actual_return_date
         order.final_total = final_total
+        order.penalty_amount = penalty_amount
+        order.penalty_days = late_days
         order.remaining_amount = remaining_amount
         order.status = 'completed'
         order.save()
         
         # Calculate salaries for loading personnel
-        for allocation in order.personnel_allocations.all():
-            salary = (final_total * allocation.percentage) / 100
-            allocation.salary_earned = salary
+        commission_pool = quantize_currency(final_total * COMMISSION_RATE)
+        allocations = list(order.personnel_allocations.all())
+        total_weight = sum((allocation.percentage or Decimal('0')) for allocation in allocations)
+        for allocation in allocations:
+            weight = allocation.percentage or Decimal('0')
+            share = (weight / total_weight) if total_weight > 0 else Decimal('0')
+            commission_total = quantize_currency(commission_pool * share)
+            allocation.salary_earned = commission_total
+            paid_so_far = allocation.commission_paid or Decimal('0')
+            if paid_so_far < commission_total:
+                allocation.commission_paid = commission_total
             allocation.save()
         
         # Confirm stock usage (remove from reserved)

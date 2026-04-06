@@ -1,25 +1,50 @@
-{% extends 'base.html' %}
+{% extends 'layout/base.html' %}
 
 {% block title %} - User Management{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold">User Management</h1>
-        <a href="{% url 'accounts:user_create' %}" class="btn-primary">
-            <i class="fas fa-plus mr-2"></i>Add New User
-        </a>
-    </div>
-    
-    <!-- Filters -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 mb-6">
-        <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <!-- Header -->
+    <div class="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-2xl p-6 sm:p-8 border border-blue-200 dark:border-blue-800/50 mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-0">
             <div>
-                <input type="text" name="search" placeholder="Search users..." 
-                       value="{{ search_query }}" class="input-field">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg">
+                        <i class="fas fa-users text-white text-xl"></i>
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">User Management</h1>
+                </div>
+                <p class="text-gray-600 dark:text-gray-400 text-sm sm:text-base">Manage all system users and their roles</p>
+            </div>
+            <a href="{% url 'accounts:user_create' %}" class="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 font-medium text-sm sm:text-base">
+                <i class="fas fa-plus"></i>
+                <span>Add User</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-lg p-6 sm:p-8 mb-8 border border-gray-200 dark:border-gray-700">
+        <div class="flex items-center gap-3 mb-6">
+            <i class="fas fa-filter text-blue-500 text-xl"></i>
+            <h2 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Search & Filter Users</h2>
+        </div>
+        <form method="get" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div class="sm:col-span-2 lg:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Search</label>
+                <div class="relative">
+                    <input type="text" name="search" placeholder="Username, name, email, or phone..." 
+                           value="{{ search_query }}" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400">
+                    {% if search_query %}
+                    <a href="{% url 'accounts:user_list' %}" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" title="Clear search">
+                        <i class="fas fa-times text-lg"></i>
+                    </a>
+                    {% endif %}
+                </div>
             </div>
             <div>
-                <select name="role" class="input-field">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Role</label>
+                <select name="role" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                     <option value="">All Roles</option>
                     {% for value, label in role_choices %}
                     <option value="{{ value }}" {% if role_filter == value %}selected{% endif %}>
@@ -29,18 +54,21 @@
                 </select>
             </div>
             <div>
-                <select name="active" class="input-field">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
+                <select name="active" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                     <option value="">All Status</option>
                     <option value="active" {% if active_filter == 'active' %}selected{% endif %}>Active</option>
                     <option value="inactive" {% if active_filter == 'inactive' %}selected{% endif %}>Inactive</option>
                 </select>
             </div>
-            <div class="flex space-x-2">
-                <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-                    <i class="fas fa-search mr-2"></i>Filter
+            <div class="sm:col-span-2 lg:col-span-1 flex flex-col sm:flex-row gap-2">
+                <button type="submit" class="flex-1 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 font-medium">
+                    <i class="fas fa-search"></i>
+                    <span>Filter</span>
                 </button>
-                <a href="{% url 'accounts:user_list' %}" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600">
-                    <i class="fas fa-redo mr-2"></i>Reset
+                <a href="{% url 'accounts:user_list' %}" class="flex-1 bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700 text-white px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 font-medium">
+                    <i class="fas fa-redo"></i>
+                    <span>Reset</span>
                 </a>
             </div>
         </form>
@@ -49,56 +77,62 @@
     <!-- Users Table -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="min-w-full">
-                <thead class="bg-gray-50 dark:bg-gray-700">
+            <table class="min-w-full border-collapse">
+                <thead class="bg-gray-50 dark:bg-gray-700 border-b-2 border-gray-200 dark:border-gray-600">
                     <tr>
-                        <th class="table-header">Username</th>
-                        <th class="table-header">Name</th>
-                        <th class="table-header">Email</th>
-                        <th class="table-header">Role</th>
-                        <th class="table-header">Phone</th>
-                        <th class="table-header">Status</th>
-                        <th class="table-header">Last Login</th>
-                        <th class="table-header">Actions</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Username</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Name</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Email</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Role</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Phone</th>
+                        <th class="px-6 py-3 text-center text-sm font-semibold text-gray-900 dark:text-white">Status</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Last Login</th>
+                        <th class="px-6 py-3 text-center text-sm font-semibold text-gray-900 dark:text-white">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                     {% for user in users %}
-                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition">
-                        <td class="table-cell font-medium">{{ user.username }}</td>
-                        <td class="table-cell">{{ user.get_full_name|default:"-" }}</td>
-                        <td class="table-cell">{{ user.email|default:"-" }}</td>
-                        <td class="table-cell">
-                            <span class="px-2 py-1 rounded-full text-xs 
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <td class="px-6 py-4 text-sm font-mono text-gray-900 dark:text-white">{{ user.username }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ user.get_full_name|default:"—" }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ user.email|default:"—" }}</td>
+                        <td class="px-6 py-4 text-sm">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold
                                 {% if user.role == 'admin' %}bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200
                                 {% elif user.role == 'loading' %}bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200
                                 {% else %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% endif %}">
                                 {{ user.get_role_display }}
                             </span>
                         </td>
-                        <td class="table-cell">{{ user.phone|default:"-" }}</td>
-                        <td class="table-cell">
+                        <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ user.phone|default:"—" }}</td>
+                        <td class="px-6 py-4 text-sm text-center">
                             {% if user.is_active %}
-                            <span class="badge-success">Active</span>
+                            <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs font-semibold rounded-full">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Active</span>
+                            </span>
                             {% else %}
-                            <span class="badge-danger">Inactive</span>
+                            <span class="inline-flex items-center gap-1 px-3 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 text-xs font-semibold rounded-full">
+                                <i class="fas fa-times-circle"></i>
+                                <span>Inactive</span>
+                            </span>
                             {% endif %}
                         </td>
-                        <td class="table-cell">{{ user.last_login|date:"Y-m-d H:i"|default:"Never" }}</td>
-                        <td class="table-cell">
-                            <div class="flex space-x-2">
+                        <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ user.last_login|date:"Y-m-d H:i"|default:"Never" }}</td>
+                        <td class="px-6 py-4 text-sm text-center">
+                            <div class="flex justify-center space-x-3">
                                 <a href="{% url 'accounts:user_edit' user.id %}" 
-                                   class="text-blue-600 hover:text-blue-800" title="Edit">
+                                   class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 {% if user.id != request.user.id %}
                                 <a href="{% url 'accounts:user_toggle_active' user.id %}" 
-                                   class="{% if user.is_active %}text-yellow-600 hover:text-yellow-800{% else %}text-green-600 hover:text-green-800{% endif %}"
+                                   class="{% if user.is_active %}text-yellow-600 hover:text-yellow-800 dark:text-yellow-400 dark:hover:text-yellow-300{% else %}text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300{% endif %} transition-colors"
                                    title="{% if user.is_active %}Deactivate{% else %}Activate{% endif %}">
                                     <i class="fas {% if user.is_active %}fa-ban{% else %}fa-check-circle{% endif %}"></i>
                                 </a>
                                 <a href="{% url 'accounts:user_delete' user.id %}" 
-                                   class="text-red-600 hover:text-red-800" title="Delete">
+                                   class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors" title="Delete">
                                     <i class="fas fa-trash"></i>
                                 </a>
                                 {% endif %}
@@ -107,8 +141,9 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8" class="text-center py-8 text-gray-500">
-                            No users found
+                        <td colspan="8" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                            <i class="fas fa-users text-4xl mb-3 opacity-50 block"></i>
+                            <p class="text-lg">No users found</p>
                         </td>
                     </tr>
                     {% endfor %}
@@ -116,29 +151,64 @@
             </table>
         </div>
     </div>
-    
-    <!-- Pagination (if needed) -->
-    {% if users.has_other_pages %}
-    <div class="mt-6 flex justify-center">
-        <div class="flex space-x-2">
-            {% if users.has_previous %}
-            <a href="?page={{ users.previous_page_number }}" class="px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow">
-                Previous
+
+    <!-- Pagination -->
+    <div class="mt-8 flex flex-col items-center gap-4">
+        <div class="flex flex-wrap justify-center gap-2">
+            {% if page_obj.has_previous %}
+            <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if active_filter %}&active={{ active_filter }}{% endif %}" 
+               class="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="First page">
+                <i class="fas fa-angle-double-left"></i>
             </a>
-            {% endif %}
-            
-            <span class="px-4 py-2 bg-green-600 text-white rounded-lg">
-                Page {{ users.number }} of {{ users.paginator.num_pages }}
+            <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if active_filter %}&active={{ active_filter }}{% endif %}" 
+               class="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="Previous page">
+                <i class="fas fa-angle-left"></i>
+            </a>
+            {% else %}
+            <span class="px-3 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-gray-400 cursor-not-allowed" title="First page">
+                <i class="fas fa-angle-double-left"></i>
             </span>
-            
-            {% if users.has_next %}
-            <a href="?page={{ users.next_page_number }}" class="px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow">
-                Next
+            <span class="px-3 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-gray-400 cursor-not-allowed" title="Previous page">
+                <i class="fas fa-angle-left"></i>
+            </span>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <span class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium shadow-lg">
+                    {{ num }}
+                </span>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if active_filter %}&active={{ active_filter }}{% endif %}" 
+                   class="px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-medium">
+                    {{ num }}
+                </a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if active_filter %}&active={{ active_filter }}{% endif %}" 
+               class="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="Next page">
+                <i class="fas fa-angle-right"></i>
             </a>
+            <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if active_filter %}&active={{ active_filter }}{% endif %}" 
+               class="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="Last page">
+                <i class="fas fa-angle-double-right"></i>
+            </a>
+            {% else %}
+            <span class="px-3 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-gray-400 cursor-not-allowed" title="Next page">
+                <i class="fas fa-angle-right"></i>
+            </span>
+            <span class="px-3 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-gray-400 cursor-not-allowed" title="Last page">
+                <i class="fas fa-angle-double-right"></i>
+            </span>
             {% endif %}
         </div>
+
+        <div class="text-center text-sm text-gray-600 dark:text-gray-400">
+            <p>Page <span class="font-bold text-gray-900 dark:text-white">{{ page_obj.number }}</span> of <span class="font-bold text-gray-900 dark:text-white">{{ page_obj.paginator.num_pages }}</span></p>
+        </div>
     </div>
-    {% endif %}
 </div>
 
 <script>

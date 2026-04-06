@@ -1,0 +1,204 @@
+{% extends 'layout/base.html' %}
+
+{% block title %} - Reception Management{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl p-6 sm:p-8 border border-purple-200 dark:border-purple-800/50 mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-0">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
+                        <i class="fas fa-headset text-white text-xl"></i>
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Reception Management</h1>
+                </div>
+                <p class="text-gray-600 dark:text-gray-400 text-sm sm:text-base">Manage reception staff and monitor their orders</p>
+            </div>
+            <a href="{% url 'personnel:reception_create' %}" class="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 font-medium text-sm sm:text-base">
+                <i class="fas fa-plus"></i>
+                <span>Add Reception</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters & Actions -->
+    <div class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-lg p-6 sm:p-8 mb-8 border border-gray-200 dark:border-gray-700">
+        <div class="flex items-center gap-3 mb-6">
+            <i class="fas fa-filter text-purple-500 text-xl"></i>
+            <h2 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Search & Filter Reception</h2>
+        </div>
+        <form method="get" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div class="sm:col-span-2 lg:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Search</label>
+                <div class="relative">
+                    <input type="text" name="search" placeholder="Name, ID, email, or phone..." 
+                           value="{{ search_query }}" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400">
+                    {% if search_query %}
+                    <a href="{% url 'personnel:reception_list' %}" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" title="Clear search">
+                        <i class="fas fa-times text-lg"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
+                <select name="status" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                    <option value="">All Status</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                </select>
+            </div>
+            <div class="sm:col-span-2 lg:col-span-2 flex flex-col sm:flex-row gap-2">
+                <button type="submit" class="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 font-medium">
+                    <i class="fas fa-search"></i>
+                    <span>Filter</span>
+                </button>
+                <a href="{% url 'personnel:reception_list' %}" class="flex-1 bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700 text-white px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 font-medium">
+                    <i class="fas fa-redo"></i>
+                    <span>Reset</span>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Reception Table -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full border-collapse">
+                <thead class="bg-gray-50 dark:bg-gray-700 border-b-2 border-gray-200 dark:border-gray-600">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Employee ID</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Name</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Email</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Phone</th>
+                        <th class="px-6 py-3 text-center text-sm font-semibold text-gray-900 dark:text-white">Total Orders</th>
+                        <th class="px-6 py-3 text-center text-sm font-semibold text-gray-900 dark:text-white">Active Orders</th>
+                        <th class="px-6 py-3 text-center text-sm font-semibold text-gray-900 dark:text-white">Status</th>
+                        <th class="px-6 py-3 text-center text-sm font-semibold text-gray-900 dark:text-white">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                    {% for staff in reception %}
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors reception-row" data-reception-id="{{ staff.id }}">
+                        <td class="px-6 py-4 text-sm font-mono text-gray-900 dark:text-white">{{ staff.employee_id }}</td>
+                        <td class="px-6 py-4 text-sm">
+                            <div class="font-medium text-gray-900 dark:text-white">{{ staff.user.get_full_name|default:staff.user.username }}</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">@{{ staff.user.username }}</div>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ staff.user.email|default:"—" }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ staff.user.phone|default:"—" }}</td>
+                        <td class="px-6 py-4 text-sm text-center text-gray-900 dark:text-white font-semibold">{{ staff.get_created_orders_count }}</td>
+                        <td class="px-6 py-4 text-sm text-center text-gray-900 dark:text-white">{{ staff.get_active_orders_count }}</td>
+                        <td class="px-6 py-4 text-sm text-center">
+                            {% if staff.is_active %}
+                            <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs font-semibold rounded-full">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Active</span>
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center gap-1 px-3 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 text-xs font-semibold rounded-full">
+                                <i class="fas fa-times-circle"></i>
+                                <span>Inactive</span>
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-center">
+                            <div class="flex justify-center space-x-3">
+                                <a href="{% url 'personnel:reception_edit' staff.id %}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'personnel:reception_toggle_active' staff.id %}" class="text-yellow-600 hover:text-yellow-800 dark:text-yellow-400 dark:hover:text-yellow-300 transition-colors" title="{% if staff.is_active %}Deactivate{% else %}Activate{% endif %}">
+                                    <i class="fas fa-power-off"></i>
+                                </a>
+                                <a href="{% url 'personnel:reception_delete' staff.id %}" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                            <i class="fas fa-headset text-4xl mb-3 opacity-50 block"></i>
+                            <p class="text-lg">No reception staff found</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="mt-8 flex flex-col items-center gap-4">
+        <div class="flex flex-wrap justify-center gap-2">
+            {% if page_obj.has_previous %}
+            <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
+               class="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="First page">
+                <i class="fas fa-angle-double-left"></i>
+            </a>
+            <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
+               class="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="Previous page">
+                <i class="fas fa-angle-left"></i>
+            </a>
+            {% else %}
+            <span class="px-3 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-gray-400 cursor-not-allowed" title="First page">
+                <i class="fas fa-angle-double-left"></i>
+            </span>
+            <span class="px-3 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-gray-400 cursor-not-allowed" title="Previous page">
+                <i class="fas fa-angle-left"></i>
+            </span>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <span class="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium shadow-lg">
+                    {{ num }}
+                </span>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
+                   class="px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-medium">
+                    {{ num }}
+                </a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
+               class="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="Next page">
+                <i class="fas fa-angle-right"></i>
+            </a>
+            <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
+               class="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="Last page">
+                <i class="fas fa-angle-double-right"></i>
+            </a>
+            {% else %}
+            <span class="px-3 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-gray-400 cursor-not-allowed" title="Next page">
+                <i class="fas fa-angle-right"></i>
+            </span>
+            <span class="px-3 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-gray-400 cursor-not-allowed" title="Last page">
+                <i class="fas fa-angle-double-right"></i>
+            </span>
+            {% endif %}
+        </div>
+
+        <div class="text-center text-sm text-gray-600 dark:text-gray-400">
+            <p>Page <span class="font-bold text-gray-900 dark:text-white">{{ page_obj.number }}</span> of <span class="font-bold text-gray-900 dark:text-white">{{ page_obj.paginator.num_pages }}</span></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        gsap.from('tbody tr', {
+            opacity: 0,
+            x: -20,
+            duration: 0.4,
+            stagger: 0.05,
+            ease: 'power2.out'
+        });
+    });
+</script>
+{% endblock %}

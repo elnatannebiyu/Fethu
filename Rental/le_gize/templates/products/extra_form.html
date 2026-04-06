@@ -1,9 +1,17 @@
-{% extends 'base.html' %}
+{% extends 'layout/base.html' %}
 
 {% block title %} - {{ title }}{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto">
+<div class="max-w-4xl mx-auto">
+    <!-- Back Button -->
+    <div class="mb-6">
+        <a href="{% url 'products:extra_list' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium">
+            <i class="fas fa-arrow-left"></i>
+            <span>Back to Extras</span>
+        </a>
+    </div>
+
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
         <h1 class="text-2xl font-bold mb-6">{{ title }}</h1>
         
@@ -46,6 +54,19 @@
                 {% endif %}
                 {% if form.price_per_day.help_text %}
                 <p class="text-gray-500 text-xs mt-1">{{ form.price_per_day.help_text }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label for="{{ form.one_time_fee.id_for_label }}" class="block text-sm font-medium mb-2">
+                    One-time Fee ($)
+                </label>
+                {{ form.one_time_fee }}
+                {% if form.one_time_fee.errors %}
+                <p class="text-red-600 text-xs mt-1">{{ form.one_time_fee.errors.0 }}</p>
+                {% endif %}
+                {% if form.one_time_fee.help_text %}
+                <p class="text-gray-500 text-xs mt-1">{{ form.one_time_fee.help_text }}</p>
                 {% endif %}
             </div>
             
